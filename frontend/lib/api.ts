@@ -78,6 +78,23 @@ export async function exportCSV(data: AnalysisResults): Promise<Blob> {
   return response.blob()
 }
 
+export async function exportPDF(data: AnalysisResults): Promise<Blob> {
+  const response = await fetch(`${API_BASE}/export-pdf`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ results: data }),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || "PDF export failed")
+  }
+
+  return response.blob()
+}
+
 export interface TFIDFRequest {
   your_content: string
   competitor_urls: string[]

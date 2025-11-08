@@ -21,6 +21,7 @@ import {
   analyzeContent,
   compareCompetitor,
   exportCSV,
+  exportPDF,
   batchCompetitorAnalysis
 } from "@/lib/api"
 import type { AnalyzeRequest, CompareRequest } from "@/lib/api"
@@ -89,6 +90,24 @@ export default function Home() {
     }
   }
 
+  const handleExportPDF = async () => {
+    if (!results) return
+
+    try {
+      const blob = await exportPDF(results)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `seo-analysis-${Date.now()}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (err) {
+      console.error("PDF export failed:", err)
+    }
+  }
+
   const handleBatchAnalysis = async (competitorUrls: string[]) => {
     if (!lastAnalyzedText && !lastAnalyzedUrl) {
       setBatchError("Please analyze your content first before comparing with competitors")
@@ -150,7 +169,7 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="results" className="space-y-6">
-              <ResultsDisplay results={results} onExport={handleExport} />
+              <ResultsDisplay results={results} onExport={handleExport} onExportPDF={handleExportPDF} />
 
               {results.prominence_scores && results.prominence_scores.length > 0 && (
                 <ProminenceScoresDisplay scores={results.prominence_scores} />

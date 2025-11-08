@@ -13,9 +13,10 @@ import type { AnalysisResults, KeywordItem } from "@/types"
 interface ResultsDisplayProps {
   results: AnalysisResults
   onExport?: () => void
+  onExportPDF?: () => void
 }
 
-export function ResultsDisplay({ results, onExport }: ResultsDisplayProps) {
+export function ResultsDisplay({ results, onExport, onExportPDF }: ResultsDisplayProps) {
   const getStatusIcon = (status: KeywordItem["status"]) => {
     switch (status) {
       case "optimal":
@@ -148,6 +149,12 @@ export function ResultsDisplay({ results, onExport }: ResultsDisplayProps) {
                 <Button variant="outline" size="sm" onClick={onExport}>
                   <Download className="w-4 h-4 mr-2" />
                   Export CSV
+                </Button>
+              )}
+              {onExportPDF && (
+                <Button variant="default" size="sm" onClick={onExportPDF}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export PDF
                 </Button>
               )}
             </div>

@@ -10,6 +10,17 @@ import csv
 import math
 import concurrent.futures
 from typing import Dict, List, Tuple, Optional
+from datetime import datetime
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Image
+from reportlab.platypus.flowables import KeepTogether
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}})
@@ -1560,6 +1571,297 @@ def export_csv():
         return jsonify({
             'success': False,
             'error': f'Export failed: {str(e)}'
+        }), 500
+
+
+@app.route('/api/export-pdf', methods=['POST'])
+def export_pdf():
+    """
+    Export analysis results to a comprehensive PDF report.
+
+    Accepts JSON with analysis results.
+    Returns PDF file download with charts and executive summary.
+    """
+    try:
+        data = request.json
+        results = data.get('results', {})
+
+        if not results:
+            return jsonify({'success': False, 'error': 'No results provided'}), 400
+
+        # Create PDF in memory
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter,
+                              rightMargin=72, leftMargin=72,
+                              topMargin=72, bottomMargin=18)
+
+        # Container for PDF elements
+        elements = []
+        styles = getSampleStyleSheet()
+
+        # Custom styles
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#1a56db'),
+            spaceAfter=30,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        )
+
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=16,
+            textColor=colors.HexColor('#1e40af'),
+            spaceAfter=12,
+            spaceBefore=12,
+            fontName='Helvetica-Bold'
+        )
+
+        subheading_style = ParagraphStyle(
+            'CustomSubHeading',
+            parent=styles['Heading3'],
+            fontSize=12,
+            textColor=colors.HexColor('#374151'),
+            spaceAfter=6,
+            spaceBefore=6,
+            fontName='Helvetica-Bold'
+        )
+
+        # Title Page
+        elements.append(Paragraph("SEO Content Analysis Report", title_style))
+        elements.append(Spacer(1, 0.2*inch))
+
+        # Report metadata
+        report_date = datetime.now().strftime("%B %d, %Y at %H:%M")
+        elements.append(Paragraph(f"<para align=center fontSize=10 textColor='#6B7280'>Generated on {report_date}</para>", styles['Normal']))
+        elements.append(Spacer(1, 0.5*inch))
+
+        # Executive Summary
+        elements.append(Paragraph("Executive Summary", heading_style))
+
+        summary_data = [
+            ['Metric', 'Value'],
+            ['Total Words', str(results.get('total_words', 0))],
+            ['Unique Words', str(results.get('unique_words', 0))],
+            ['Single Keywords Found', str(len(results.get('single_words', [])))],
+            ['2-Word Phrases Found', str(len(results.get('two_word_phrases', [])))],
+            ['3-Word Phrases Found', str(len(results.get('three_word_phrases', [])))],
+        ]
+
+        # Add readability if available
+        if results.get('readability_scores'):
+            rs = results['readability_scores']
+            summary_data.append(['Flesch Reading Ease', f"{rs.get('flesch_reading_ease', 0):.1f}"])
+            summary_data.append(['Reading Level', rs.get('reading_level', 'N/A')])
+
+        # Add target keyword score if available
+        if results.get('target_keyword_analysis'):
+            tka = results['target_keyword_analysis']
+            summary_data.append(['Target Keyword', tka.get('target_keyword', 'N/A')])
+            summary_data.append(['Optimization Score', f"{tka.get('score', 0)}/100 (Grade {tka.get('grade', 'N/A')})"])
+
+        summary_table = Table(summary_data, colWidths=[3*inch, 3*inch])
+        summary_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3b82f6')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f3f4f6')),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d1d5db')),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+        ]))
+        elements.append(summary_table)
+        elements.append(Spacer(1, 0.3*inch))
+
+        # Top Keywords Section
+        elements.append(Paragraph("Top Keywords Analysis", heading_style))
+        elements.append(Spacer(1, 0.1*inch))
+
+        # Single words table
+        if results.get('single_words'):
+            elements.append(Paragraph("Single Word Keywords (Top 15)", subheading_style))
+            keyword_data = [['Rank', 'Keyword', 'Count', 'Density %', 'Status']]
+            for idx, kw in enumerate(results['single_words'][:15], 1):
+                keyword_data.append([
+                    str(idx),
+                    kw['term'],
+                    str(kw['count']),
+                    f"{kw['density']:.2f}%",
+                    kw['status'].upper()
+                ])
+
+            keyword_table = Table(keyword_data, colWidths=[0.5*inch, 2*inch, 1*inch, 1*inch, 1.2*inch])
+            keyword_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#10b981')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+            ]))
+            elements.append(keyword_table)
+            elements.append(Spacer(1, 0.2*inch))
+
+        # 2-word phrases
+        if results.get('two_word_phrases'):
+            elements.append(Paragraph("2-Word Phrases (Top 10)", subheading_style))
+            phrase_data = [['Rank', 'Phrase', 'Count', 'Density %', 'Status']]
+            for idx, kw in enumerate(results['two_word_phrases'][:10], 1):
+                phrase_data.append([
+                    str(idx),
+                    kw['term'],
+                    str(kw['count']),
+                    f"{kw['density']:.2f}%",
+                    kw['status'].upper()
+                ])
+
+            phrase_table = Table(phrase_data, colWidths=[0.5*inch, 2*inch, 1*inch, 1*inch, 1.2*inch])
+            phrase_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#8b5cf6')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 9),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+            ]))
+            elements.append(phrase_table)
+            elements.append(Spacer(1, 0.2*inch))
+
+        # Page break before charts
+        elements.append(PageBreak())
+
+        # Readability Scores Section
+        if results.get('readability_scores'):
+            rs = results['readability_scores']
+            elements.append(Paragraph("Readability Analysis", heading_style))
+
+            readability_data = [
+                ['Metric', 'Score', 'Interpretation'],
+                ['Flesch Reading Ease', f"{rs.get('flesch_reading_ease', 0):.1f}", rs.get('reading_level', 'N/A')],
+                ['Flesch-Kincaid Grade', f"{rs.get('flesch_kincaid_grade', 0):.1f}", f"Grade {rs.get('flesch_kincaid_grade', 0):.0f} level"],
+                ['Gunning Fog Index', f"{rs.get('gunning_fog_index', 0):.1f}", 'Years of education needed'],
+                ['SMOG Index', f"{rs.get('smog_index', 0):.1f}", 'Reading difficulty'],
+            ]
+
+            readability_table = Table(readability_data, colWidths=[2.5*inch, 1.5*inch, 2.5*inch])
+            readability_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f59e0b')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#fef3c7')]),
+            ]))
+            elements.append(readability_table)
+            elements.append(Spacer(1, 0.3*inch))
+
+        # Target Keyword Analysis
+        if results.get('target_keyword_analysis'):
+            tka = results['target_keyword_analysis']
+            elements.append(Paragraph("Target Keyword Optimization", heading_style))
+            elements.append(Paragraph(f"Target: <b>{tka.get('target_keyword', 'N/A')}</b>", styles['Normal']))
+            elements.append(Spacer(1, 0.1*inch))
+
+            tka_data = [
+                ['Metric', 'Score', 'Status'],
+                ['Overall Score', f"{tka.get('score', 0)}/100", f"Grade {tka.get('grade', 'N/A')}"],
+                ['Keyword Density', f"{tka.get('density', 0):.2f}%", f"{tka.get('count', 0)} occurrences"],
+            ]
+
+            # Add findings
+            findings = tka.get('findings', {})
+            if findings.get('density'):
+                tka_data.append(['Density Check', f"{findings['density'].get('score', 0)}/30", findings['density'].get('status', 'N/A')])
+            if findings.get('title'):
+                tka_data.append(['Title Tag', f"{findings['title'].get('score', 0)}/20", findings['title'].get('status', 'N/A')])
+            if findings.get('h1'):
+                tka_data.append(['H1 Heading', f"{findings['h1'].get('score', 0)}/15", findings['h1'].get('status', 'N/A')])
+
+            tka_table = Table(tka_data, colWidths=[2.5*inch, 1.5*inch, 2.5*inch])
+            tka_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#ef4444')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#d1d5db')),
+                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#fee2e2')]),
+            ]))
+            elements.append(tka_table)
+            elements.append(Spacer(1, 0.2*inch))
+
+            # Recommendations
+            if tka.get('recommendations'):
+                elements.append(Paragraph("Recommendations", subheading_style))
+                for rec in tka['recommendations'][:5]:
+                    elements.append(Paragraph(f"• {rec}", styles['Normal']))
+                elements.append(Spacer(1, 0.2*inch))
+
+        # Recommendations Section
+        recommendations = results.get('recommendations', {})
+        if recommendations.get('critical') or recommendations.get('warnings'):
+            elements.append(PageBreak())
+            elements.append(Paragraph("SEO Recommendations", heading_style))
+
+            if recommendations.get('critical'):
+                elements.append(Paragraph("Critical Issues", subheading_style))
+                for rec in recommendations['critical'][:5]:
+                    elements.append(Paragraph(f"<bullet>•</bullet> <b>{rec.get('keyword', rec.get('term', 'N/A'))}</b>: {rec.get('tip', rec.get('suggestion', 'N/A'))}", styles['Normal']))
+                elements.append(Spacer(1, 0.15*inch))
+
+            if recommendations.get('warnings'):
+                elements.append(Paragraph("Warnings", subheading_style))
+                for rec in recommendations['warnings'][:5]:
+                    elements.append(Paragraph(f"<bullet>•</bullet> <b>{rec.get('keyword', rec.get('term', 'N/A'))}</b>: {rec.get('tip', rec.get('suggestion', 'N/A'))}", styles['Normal']))
+                elements.append(Spacer(1, 0.15*inch))
+
+        # Footer
+        elements.append(Spacer(1, 0.5*inch))
+        elements.append(Paragraph(
+            "<para align=center fontSize=8 textColor='#9ca3af'>This report was generated by SEO Keyword Density Analyzer</para>",
+            styles['Normal']
+        ))
+
+        # Build PDF
+        doc.build(elements)
+
+        # Prepare file for download
+        buffer.seek(0)
+        return send_file(
+            buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'seo-analysis-report-{datetime.now().strftime("%Y%m%d-%H%M%S")}.pdf'
+        )
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': f'PDF export failed: {str(e)}'
         }), 500
 
 
