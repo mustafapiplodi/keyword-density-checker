@@ -65,7 +65,7 @@ export function AnalysisForm({ onSubmit, isLoading, error }: AnalysisFormProps) 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "text" | "url")}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2" data-tour="input-tabs">
               <TabsTrigger value="text">
                 <FileText className="w-4 h-4 mr-2" />
                 Text Input
@@ -169,7 +169,7 @@ export function AnalysisForm({ onSubmit, isLoading, error }: AnalysisFormProps) 
                 />
               </div>
 
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between" data-tour="clustering-toggle">
                 <div className="space-y-0.5">
                   <Label htmlFor="cluster">Keyword Clustering</Label>
                   <p className="text-xs text-muted-foreground">
@@ -184,7 +184,7 @@ export function AnalysisForm({ onSubmit, isLoading, error }: AnalysisFormProps) 
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2" data-tour="target-keyword">
               <Label htmlFor="target-keyword">Target Keyword (Optional)</Label>
               <Input
                 id="target-keyword"
@@ -211,6 +211,7 @@ export function AnalysisForm({ onSubmit, isLoading, error }: AnalysisFormProps) 
             className="w-full"
             size="lg"
             disabled={isLoading || selectedNGrams.length === 0}
+            data-tour="analyze-button"
           >
             {isLoading ? "Analyzing..." : "Analyze Content"}
           </Button>
