@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ReadabilityGauge } from "@/components/ReadabilityGauge"
 import type { ReadabilityScores } from "@/types"
 import { AlertCircle, CheckCircle2, Info } from "lucide-react"
 
@@ -59,6 +60,21 @@ export function ReadabilityScoresDisplay({ scores }: ReadabilityScoresDisplayPro
           <div className="text-sm text-muted-foreground">
             This content is suitable for {scores.reading_level.toLowerCase()} readers
           </div>
+        </div>
+
+        {/* Gauge Charts */}
+        <div className="flex justify-center gap-8 flex-wrap">
+          <ReadabilityGauge
+            score={scores.flesch_reading_ease}
+            maxScore={100}
+            label="Reading Ease"
+          />
+          <ReadabilityGauge
+            score={Math.max(0, 18 - scores.flesch_kincaid_grade)}
+            maxScore={18}
+            label="Grade Level (Inverted)"
+            color={scores.flesch_kincaid_grade <= 8 ? "hsl(142, 71%, 45%)" : scores.flesch_kincaid_grade <= 12 ? "hsl(48, 96%, 53%)" : "hsl(25, 95%, 53%)"}
+          />
         </div>
 
         {/* Core Metrics */}

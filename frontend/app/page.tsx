@@ -8,6 +8,8 @@ import { ProminenceScoresDisplay } from "@/components/ProminenceScoresDisplay"
 import { ReadabilityScoresDisplay } from "@/components/ReadabilityScoresDisplay"
 import { ContentStructureDisplay } from "@/components/ContentStructureDisplay"
 import { VisualizationChart } from "@/components/VisualizationChart"
+import { KeywordWordCloud } from "@/components/KeywordWordCloud"
+import { KeywordHeatmap } from "@/components/KeywordHeatmap"
 import { CompetitorComparison } from "@/components/CompetitorComparison"
 import { BatchCompetitorAnalysis } from "@/components/BatchCompetitorAnalysis"
 import { AnalysisSkeleton, ChartSkeleton, ContentQualitySkeleton } from "@/components/LoadingSkeletons"
@@ -181,6 +183,22 @@ export default function Home() {
                       data={results.three_word_phrases}
                       title="Three-Word Phrases"
                       description="Top three-word phrases by density"
+                    />
+                  )}
+
+                  {results.single_words.length > 0 && (
+                    <KeywordWordCloud
+                      data={results.single_words}
+                      title="Keyword Word Cloud"
+                      description="Visual representation of keyword density (size = density)"
+                    />
+                  )}
+
+                  {results.single_words.length > 0 && (
+                    <KeywordHeatmap
+                      data={results.single_words}
+                      title="Keyword Density Heatmap"
+                      description="Interactive heatmap showing keyword density distribution"
                     />
                   )}
                 </>
