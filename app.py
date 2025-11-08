@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template, send_file
+from flask_cors import CORS
 import spacy
 from bs4 import BeautifulSoup
 import requests
@@ -9,6 +10,7 @@ import csv
 from typing import Dict, List, Tuple, Optional
 
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}})
 
 # Load spaCy model
 try:
