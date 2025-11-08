@@ -73,15 +73,15 @@ class KeywordDensityAnalyzer:
             'without', 'would', 'yes', 'yet', 'you', 'your', 'yours', 'yourself', 'yourselves'
         }
 
-    def extract_from_url(self, url: str) -> Tuple[str, Dict]:
+    def extract_from_url(self, url: str) -> Tuple[str, Dict, str]:
         """
-        Extract visible text and metadata from a URL.
+        Extract visible text, metadata, and HTML from a URL.
 
         Args:
             url: The URL to extract content from
 
         Returns:
-            Tuple of (main_text, metadata_dict)
+            Tuple of (main_text, metadata_dict, html_content)
         """
         try:
             # Add timeout and headers to avoid blocking
@@ -90,6 +90,9 @@ class KeywordDensityAnalyzer:
             }
             response = requests.get(url, timeout=10, headers=headers)
             response.raise_for_status()
+
+            # Store HTML for structure analysis
+            html_content = response.text
 
             # Parse HTML
             soup = BeautifulSoup(response.content, 'html.parser')
@@ -127,7 +130,7 @@ class KeywordDensityAnalyzer:
                 else:
                     main_text = soup.get_text(separator=' ', strip=True)
 
-            return main_text, metadata
+            return main_text, metadata, html_content
 
         except Exception as e:
             raise Exception(f"Error extracting URL content: {str(e)}")
@@ -571,6 +574,269 @@ class KeywordDensityAnalyzer:
             return {
                 'error': f"Failed to analyze competitor: {str(e)}"
             }
+
+    def calculate_readability_scores(self, text: str) -> Dict:
+        """
+        Calculate multiple readability metrics.
+
+        Returns:
+            Dictionary with readability scores
+        """
+        import re
+
+        # Clean text
+        clean_text = re.sub(r'\s+', ' ', text).strip()
+
+        # Count sentences
+        sentences = re.split(r'[.!?]+', clean_text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        num_sentences = len(sentences)
+
+        # Count words
+        words = re.findall(r'\b[a-zA-Z]+\b', clean_text)
+        num_words = len(words)
+
+        # Count syllables
+        def count_syllables(word):
+            word = word.lower()
+            count = 0
+            vowels = 'aeiouy'
+            if word[0] in vowels:
+                count += 1
+            for index in range(1, len(word)):
+                if word[index] in vowels and word[index - 1] not in vowels:
+                    count += 1
+            if word.endswith('e'):
+                count -= 1
+            if count == 0:
+                count += 1
+            return count
+
+        num_syllables = sum(count_syllables(word) for word in words)
+
+        # Count complex words (3+ syllables)
+        complex_words = [word for word in words if count_syllables(word) >= 3]
+        num_complex_words = len(complex_words)
+
+        # Avoid division by zero
+        if num_sentences == 0 or num_words == 0:
+            return {
+                'error': 'Not enough content for readability analysis'
+            }
+
+        # Calculate metrics
+        avg_sentence_length = num_words / num_sentences
+        avg_syllables_per_word = num_syllables / num_words
+        avg_word_length = sum(len(word) for word in words) / num_words
+
+        # Flesch Reading Ease (0-100, higher = easier)
+        flesch_reading_ease = 206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_syllables_per_word)
+        flesch_reading_ease = max(0, min(100, flesch_reading_ease))  # Clamp to 0-100
+
+        # Flesch-Kincaid Grade Level
+        flesch_kincaid_grade = (0.39 * avg_sentence_length) + (11.8 * avg_syllables_per_word) - 15.59
+        flesch_kincaid_grade = max(0, flesch_kincaid_grade)
+
+        # Gunning Fog Index
+        percent_complex = (num_complex_words / num_words) * 100
+        gunning_fog = 0.4 * (avg_sentence_length + percent_complex)
+
+        # SMOG Index (requires 30+ sentences ideally)
+        if num_sentences >= 30:
+            smog_index = 1.0430 * math.sqrt(num_complex_words * (30 / num_sentences)) + 3.1291
+        else:
+            smog_index = 1.0430 * math.sqrt(num_complex_words) + 3.1291
+
+        # Interpret Flesch Reading Ease
+        if flesch_reading_ease >= 90:
+            reading_level = "Very Easy (5th grade)"
+        elif flesch_reading_ease >= 80:
+            reading_level = "Easy (6th grade)"
+        elif flesch_reading_ease >= 70:
+            reading_level = "Fairly Easy (7th grade)"
+        elif flesch_reading_ease >= 60:
+            reading_level = "Standard (8th-9th grade)"
+        elif flesch_reading_ease >= 50:
+            reading_level = "Fairly Difficult (10th-12th grade)"
+        elif flesch_reading_ease >= 30:
+            reading_level = "Difficult (College)"
+        else:
+            reading_level = "Very Difficult (College graduate)"
+
+        return {
+            'flesch_reading_ease': round(flesch_reading_ease, 2),
+            'flesch_kincaid_grade': round(flesch_kincaid_grade, 2),
+            'gunning_fog_index': round(gunning_fog, 2),
+            'smog_index': round(smog_index, 2),
+            'reading_level': reading_level,
+            'statistics': {
+                'total_sentences': num_sentences,
+                'total_words': num_words,
+                'total_syllables': num_syllables,
+                'complex_words': num_complex_words,
+                'avg_sentence_length': round(avg_sentence_length, 2),
+                'avg_syllables_per_word': round(avg_syllables_per_word, 2),
+                'avg_word_length': round(avg_word_length, 2)
+            },
+            'recommendations': self._generate_readability_recommendations(
+                flesch_reading_ease, avg_sentence_length, percent_complex
+            )
+        }
+
+    def _generate_readability_recommendations(self, flesch_score, avg_sentence_length, percent_complex):
+        """Generate readability improvement suggestions."""
+        recommendations = []
+
+        if flesch_score < 60:
+            recommendations.append({
+                'type': 'readability',
+                'severity': 'warning',
+                'message': 'Content may be too difficult for general audience',
+                'suggestion': 'Aim for Flesch score of 60+ by using shorter sentences and simpler words'
+            })
+
+        if avg_sentence_length > 20:
+            recommendations.append({
+                'type': 'sentence_length',
+                'severity': 'warning',
+                'message': f'Average sentence length ({avg_sentence_length:.1f} words) is high',
+                'suggestion': 'Break long sentences into shorter ones (aim for 15-20 words)'
+            })
+
+        if percent_complex > 15:
+            recommendations.append({
+                'type': 'vocabulary',
+                'severity': 'info',
+                'message': f'{percent_complex:.1f}% of words are complex (3+ syllables)',
+                'suggestion': 'Consider using simpler alternatives where possible'
+            })
+
+        return recommendations
+
+    def analyze_content_structure(self, text: str, html: str = None) -> Dict:
+        """
+        Analyze content structure including headings, paragraphs, links, images.
+
+        Args:
+            text: Plain text content
+            html: Optional HTML content for advanced analysis
+
+        Returns:
+            Dictionary with structure analysis
+        """
+        import re
+        from bs4 import BeautifulSoup
+
+        structure = {
+            'paragraphs': {},
+            'sentences': {},
+            'links': {},
+            'images': {},
+            'headings': {},
+            'multimedia': {}
+        }
+
+        # Paragraph analysis
+        paragraphs = [p.strip() for p in text.split('\n\n') if p.strip()]
+        paragraph_lengths = [len(p.split()) for p in paragraphs]
+
+        if paragraph_lengths:
+            structure['paragraphs'] = {
+                'total': len(paragraphs),
+                'avg_words': round(sum(paragraph_lengths) / len(paragraph_lengths), 2),
+                'min_words': min(paragraph_lengths),
+                'max_words': max(paragraph_lengths),
+                'short_paragraphs': len([p for p in paragraph_lengths if p < 50]),
+                'long_paragraphs': len([p for p in paragraph_lengths if p > 150])
+            }
+
+        # Sentence analysis
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        sentence_lengths = [len(s.split()) for s in sentences]
+
+        if sentence_lengths:
+            short_sentences = len([s for s in sentence_lengths if s <= 10])
+            medium_sentences = len([s for s in sentence_lengths if 10 < s <= 20])
+            long_sentences = len([s for s in sentence_lengths if s > 20])
+
+            structure['sentences'] = {
+                'total': len(sentences),
+                'avg_words': round(sum(sentence_lengths) / len(sentence_lengths), 2),
+                'short': short_sentences,
+                'medium': medium_sentences,
+                'long': long_sentences,
+                'variety_score': round((short_sentences + medium_sentences + long_sentences) / len(sentences) * 100, 2)
+            }
+
+        # HTML structure analysis
+        if html:
+            soup = BeautifulSoup(html, 'html.parser')
+
+            # Heading analysis
+            headings = {}
+            for i in range(1, 7):
+                h_tags = soup.find_all(f'h{i}')
+                if h_tags:
+                    headings[f'h{i}'] = {
+                        'count': len(h_tags),
+                        'texts': [h.get_text().strip() for h in h_tags][:5]  # First 5
+                    }
+
+            # Validate heading hierarchy
+            heading_issues = []
+            if 'h1' in headings and headings['h1']['count'] > 1:
+                heading_issues.append('Multiple H1 tags found (should be one)')
+            if 'h1' not in headings:
+                heading_issues.append('No H1 tag found')
+
+            structure['headings'] = {
+                'data': headings,
+                'issues': heading_issues,
+                'total_headings': sum(h['count'] for h in headings.values())
+            }
+
+            # Link analysis
+            links = soup.find_all('a', href=True)
+            internal_links = []
+            external_links = []
+
+            for link in links:
+                href = link.get('href', '')
+                if href.startswith('http://') or href.startswith('https://'):
+                    external_links.append(href)
+                elif href.startswith('/') or not href.startswith('#'):
+                    internal_links.append(href)
+
+            structure['links'] = {
+                'total': len(links),
+                'internal': len(internal_links),
+                'external': len(external_links),
+                'external_urls': external_links[:10]  # First 10
+            }
+
+            # Image analysis
+            images = soup.find_all('img')
+            images_with_alt = [img for img in images if img.get('alt')]
+            images_without_alt = len(images) - len(images_with_alt)
+
+            structure['images'] = {
+                'total': len(images),
+                'with_alt': len(images_with_alt),
+                'without_alt': images_without_alt,
+                'alt_text_coverage': round(len(images_with_alt) / len(images) * 100, 2) if images else 0
+            }
+
+            # Multimedia detection
+            videos = soup.find_all(['video', 'iframe'])
+            video_count = len([v for v in videos if 'youtube' in str(v) or 'vimeo' in str(v) or v.name == 'video'])
+
+            structure['multimedia'] = {
+                'videos': video_count,
+                'has_multimedia': video_count > 0 or len(images) > 0
+            }
+
+        return structure
 
     def calculate_tfidf(self, documents: List[str], keywords: List[str] = None) -> Dict:
         """
