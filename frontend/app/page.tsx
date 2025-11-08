@@ -10,6 +10,7 @@ import { ContentStructureDisplay } from "@/components/ContentStructureDisplay"
 import { VisualizationChart } from "@/components/VisualizationChart"
 import { CompetitorComparison } from "@/components/CompetitorComparison"
 import { BatchCompetitorAnalysis } from "@/components/BatchCompetitorAnalysis"
+import { AnalysisSkeleton, ChartSkeleton, ContentQualitySkeleton } from "@/components/LoadingSkeletons"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   analyzeContent,
@@ -124,7 +125,13 @@ export default function Home() {
         error={analysisError}
       />
 
-      {results && (
+      {isAnalyzing && (
+        <div className="space-y-6">
+          <AnalysisSkeleton />
+        </div>
+      )}
+
+      {!isAnalyzing && results && (
         <div className="space-y-6">
           <Tabs defaultValue="results" className="w-full">
             <TabsList className="grid w-full grid-cols-6">
@@ -145,44 +152,60 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="visualization" className="space-y-6">
-              {results.single_words.length > 0 && (
-                <VisualizationChart
-                  data={results.single_words}
-                  title="Single Word Keywords"
-                  description="Top single-word keywords by density"
-                />
-              )}
+              {isAnalyzing ? (
+                <>
+                  <ChartSkeleton />
+                  <ChartSkeleton />
+                  <ChartSkeleton />
+                </>
+              ) : (
+                <>
+                  {results.single_words.length > 0 && (
+                    <VisualizationChart
+                      data={results.single_words}
+                      title="Single Word Keywords"
+                      description="Top single-word keywords by density"
+                    />
+                  )}
 
-              {results.two_word_phrases.length > 0 && (
-                <VisualizationChart
-                  data={results.two_word_phrases}
-                  title="Two-Word Phrases"
-                  description="Top two-word phrases by density"
-                />
-              )}
+                  {results.two_word_phrases.length > 0 && (
+                    <VisualizationChart
+                      data={results.two_word_phrases}
+                      title="Two-Word Phrases"
+                      description="Top two-word phrases by density"
+                    />
+                  )}
 
-              {results.three_word_phrases.length > 0 && (
-                <VisualizationChart
-                  data={results.three_word_phrases}
-                  title="Three-Word Phrases"
-                  description="Top three-word phrases by density"
-                />
+                  {results.three_word_phrases.length > 0 && (
+                    <VisualizationChart
+                      data={results.three_word_phrases}
+                      title="Three-Word Phrases"
+                      description="Top three-word phrases by density"
+                    />
+                  )}
+                </>
               )}
             </TabsContent>
 
             <TabsContent value="quality" className="space-y-6">
-              {results.readability_scores && (
-                <ReadabilityScoresDisplay scores={results.readability_scores} />
-              )}
+              {isAnalyzing ? (
+                <ContentQualitySkeleton />
+              ) : (
+                <>
+                  {results.readability_scores && (
+                    <ReadabilityScoresDisplay scores={results.readability_scores} />
+                  )}
 
-              {results.content_structure && (
-                <ContentStructureDisplay structure={results.content_structure} />
-              )}
+                  {results.content_structure && (
+                    <ContentStructureDisplay structure={results.content_structure} />
+                  )}
 
-              {!results.readability_scores && !results.content_structure && (
-                <div className="text-center text-muted-foreground p-8 border rounded-lg">
-                  Content quality analysis not available for this content
-                </div>
+                  {!results.readability_scores && !results.content_structure && (
+                    <div className="text-center text-muted-foreground p-8 border rounded-lg">
+                      Content quality analysis not available for this content
+                    </div>
+                  )}
+                </>
               )}
             </TabsContent>
 

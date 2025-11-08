@@ -6,6 +6,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Download, AlertCircle, AlertTriangle, CheckCircle, Info } from "lucide-react"
+import { CopyIconButton } from "@/components/CopyButton"
+import { ShareResults } from "@/components/ShareResults"
 import type { AnalysisResults, KeywordItem } from "@/types"
 
 interface ResultsDisplayProps {
@@ -38,12 +40,13 @@ export function ResultsDisplay({ results, onExport }: ResultsDisplayProps) {
               <th className="text-center p-3 font-medium">Count</th>
               <th className="text-center p-3 font-medium">Density</th>
               <th className="text-center p-3 font-medium">Status</th>
+              <th className="text-center p-3 font-medium w-16"></th>
             </tr>
           </thead>
           <tbody>
             {keywords.length === 0 ? (
               <tr>
-                <td colSpan={4} className="text-center p-6 text-muted-foreground">
+                <td colSpan={5} className="text-center p-6 text-muted-foreground">
                   No keywords found
                 </td>
               </tr>
@@ -60,6 +63,9 @@ export function ResultsDisplay({ results, onExport }: ResultsDisplayProps) {
                         {keyword.status}
                       </Badge>
                     </div>
+                  </td>
+                  <td className="text-center p-3">
+                    <CopyIconButton text={keyword.term} />
                   </td>
                 </tr>
               ))
@@ -136,12 +142,15 @@ export function ResultsDisplay({ results, onExport }: ResultsDisplayProps) {
                 Keyword density and SEO metrics for your content
               </CardDescription>
             </div>
-            {onExport && (
-              <Button variant="outline" onClick={onExport}>
-                <Download className="w-4 h-4 mr-2" />
-                Export CSV
-              </Button>
-            )}
+            <div className="flex gap-2">
+              <ShareResults results={results} />
+              {onExport && (
+                <Button variant="outline" size="sm" onClick={onExport}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
