@@ -114,3 +114,61 @@ export interface ComparisonResults {
     note: string
   }>
 }
+
+export interface TFIDFScore {
+  term: string
+  tf: number
+  idf: number
+  tfidf: number
+  count: number
+  document_frequency: number
+  uniqueness: 'high' | 'medium' | 'low'
+}
+
+export interface TFIDFResults {
+  total_documents: number
+  scores: TFIDFScore[]
+  analysis: {
+    unique_terms: number
+    common_terms: number
+    average_tfidf: number
+  }
+}
+
+export interface BatchCompetitorResults {
+  success: boolean
+  analyzed_competitors: number
+  failed_competitors: number
+  failed_urls: Array<{ url: string; error: string }>
+  keyword_gaps: Array<{
+    keyword: string
+    competitor_count: number
+    avg_density: number
+    importance_score: number
+  }>
+  common_keywords: Array<{
+    keyword: string
+    competitor_count: number
+    avg_competitor_density: number
+    your_density: number
+    gap: number
+  }>
+  your_unique_strengths: Array<{
+    keyword: string
+    your_density: number
+    competitor_usage: number
+  }>
+  tfidf_scores: TFIDFScore[]
+  summary: {
+    total_competitor_keywords: number
+    gaps_identified: number
+    common_keywords_found: number
+    your_unique_keywords: number
+    recommendation: string
+  }
+  competitors: Array<{
+    url: string
+    title: string
+    total_words: number
+  }>
+}

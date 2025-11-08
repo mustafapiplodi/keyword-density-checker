@@ -7,18 +7,27 @@ import { MetaAnalysisDisplay } from "@/components/MetaAnalysisDisplay"
 import { ProminenceScoresDisplay } from "@/components/ProminenceScoresDisplay"
 import { VisualizationChart } from "@/components/VisualizationChart"
 import { CompetitorComparison } from "@/components/CompetitorComparison"
+import { BatchCompetitorAnalysis } from "@/components/BatchCompetitorAnalysis"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { analyzeContent, compareCompetitor, exportCSV } from "@/lib/api"
+import {
+  analyzeContent,
+  compareCompetitor,
+  exportCSV,
+  batchCompetitorAnalysis
+} from "@/lib/api"
 import type { AnalyzeRequest, CompareRequest } from "@/lib/api"
-import type { AnalysisResults, ComparisonResults } from "@/types"
+import type { AnalysisResults, ComparisonResults, BatchCompetitorResults } from "@/types"
 
 export default function Home() {
   const [results, setResults] = useState<AnalysisResults | null>(null)
   const [comparisonResults, setComparisonResults] = useState<ComparisonResults | null>(null)
+  const [batchResults, setBatchResults] = useState<BatchCompetitorResults | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isComparing, setIsComparing] = useState(false)
+  const [isBatchAnalyzing, setIsBatchAnalyzing] = useState(false)
   const [analysisError, setAnalysisError] = useState<string | undefined>()
   const [comparisonError, setComparisonError] = useState<string | undefined>()
+  const [batchError, setBatchError] = useState<string | undefined>()
   const [lastAnalyzedUrl, setLastAnalyzedUrl] = useState<string | undefined>()
   const [lastAnalyzedText, setLastAnalyzedText] = useState<string | undefined>()
 
@@ -72,6 +81,30 @@ export default function Home() {
     }
   }
 
+  const handleBatchAnalysis = async (competitorUrls: string[]) => {
+    if (!lastAnalyzedText && !lastAnalyzedUrl) {
+      setBatchError("Please analyze your content first before comparing with competitors")
+      return
+    }
+
+    setIsBatchAnalyzing(true)
+    setBatchError(undefined)
+    setBatchResults(null)
+
+    try {
+      const result = await batchCompetitorAnalysis({
+        your_content: lastAnalyzedUrl || lastAnalyzedText || '',
+        competitor_urls: competitorUrls,
+        source_type: lastAnalyzedUrl ? 'url' : 'text'
+      })
+      setBatchResults(result)
+    } catch (err) {
+      setBatchError(err instanceof Error ? err.message : "Batch analysis failed")
+    } finally {
+      setIsBatchAnalyzing(false)
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div className="space-y-2">
@@ -92,11 +125,12 @@ export default function Home() {
       {results && (
         <div className="space-y-6">
           <Tabs defaultValue="results" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="results">Analysis Results</TabsTrigger>
-              <TabsTrigger value="visualization">Visualization</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="results">Results</TabsTrigger>
+              <TabsTrigger value="visualization">Charts</TabsTrigger>
               <TabsTrigger value="meta">Meta Tags</TabsTrigger>
-              <TabsTrigger value="competitor">Competitor</TabsTrigger>
+              <TabsTrigger value="competitor">1 Competitor</TabsTrigger>
+              <TabsTrigger value="batch">Batch Analysis</TabsTrigger>
             </TabsList>
 
             <TabsContent value="results" className="space-y-6">
@@ -151,6 +185,17 @@ export default function Home() {
                 isLoading={isComparing}
                 error={comparisonError}
                 results={comparisonResults || undefined}
+              />
+            </TabsContent>
+
+            <TabsContent value="batch">
+              <BatchCompetitorAnalysis
+                yourUrl={lastAnalyzedUrl}
+                yourText={lastAnalyzedText}
+                onAnalyze={handleBatchAnalysis}
+                isLoading={isBatchAnalyzing}
+                error={batchError}
+                results={batchResults || undefined}
               />
             </TabsContent>
           </Tabs>

@@ -1,4 +1,9 @@
-import type { AnalysisResults, ComparisonResults } from "@/types"
+import type {
+  AnalysisResults,
+  ComparisonResults,
+  TFIDFResults,
+  BatchCompetitorResults
+} from "@/types"
 
 const API_BASE = "/api"
 
@@ -69,4 +74,55 @@ export async function exportCSV(data: AnalysisResults): Promise<Blob> {
   }
 
   return response.blob()
+}
+
+export interface TFIDFRequest {
+  your_content: string
+  competitor_urls: string[]
+  source_type: 'url' | 'text'
+}
+
+export async function analyzeTFIDF(
+  data: TFIDFRequest
+): Promise<{ tfidf: TFIDFResults; documents_analyzed: number; failed_urls: any[] }> {
+  const response = await fetch(`${API_BASE}/tfidf-analysis`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || "TF-IDF analysis failed")
+  }
+
+  const result = await response.json()
+  return result
+}
+
+export interface BatchCompetitorRequest {
+  your_content: string
+  competitor_urls: string[]
+  source_type: 'url' | 'text'
+}
+
+export async function batchCompetitorAnalysis(
+  data: BatchCompetitorRequest
+): Promise<BatchCompetitorResults> {
+  const response = await fetch(`${API_BASE}/batch-competitor-analysis`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || "Batch analysis failed")
+  }
+
+  return response.json()
 }

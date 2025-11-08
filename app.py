@@ -7,6 +7,8 @@ from collections import Counter
 import trafilatura
 import io
 import csv
+import math
+import concurrent.futures
 from typing import Dict, List, Tuple, Optional
 
 app = Flask(__name__)
@@ -570,6 +572,272 @@ class KeywordDensityAnalyzer:
                 'error': f"Failed to analyze competitor: {str(e)}"
             }
 
+    def calculate_tfidf(self, documents: List[str], keywords: List[str] = None) -> Dict:
+        """
+        Calculate TF-IDF scores for keywords across multiple documents.
+
+        Args:
+            documents: List of text documents to analyze
+            keywords: Optional list of specific keywords to score
+
+        Returns:
+            Dictionary with TF-IDF scores for each keyword
+        """
+        if not documents:
+            return {'error': 'No documents provided'}
+
+        # Tokenize all documents
+        all_tokens = []
+        for doc_text in documents:
+            tokens, _ = self.preprocess_text(doc_text, use_lemmatization=True, remove_stopwords=True)
+            all_tokens.append(tokens)
+
+        # Calculate document frequency (DF) for each term
+        num_docs = len(documents)
+        document_frequency = Counter()
+
+        for tokens in all_tokens:
+            unique_tokens = set(tokens)
+            for token in unique_tokens:
+                document_frequency[token] += 1
+
+        # Calculate TF-IDF scores for the first document (your content)
+        if not all_tokens or not all_tokens[0]:
+            return {'error': 'No valid tokens found'}
+
+        main_doc_tokens = all_tokens[0]
+        total_terms = len(main_doc_tokens)
+        term_frequency = Counter(main_doc_tokens)
+
+        tfidf_scores = []
+
+        # If specific keywords provided, only calculate for those
+        terms_to_score = keywords if keywords else term_frequency.keys()
+
+        for term in terms_to_score:
+            if term not in term_frequency:
+                continue
+
+            # TF = (term count in document) / (total terms in document)
+            tf = term_frequency[term] / total_terms
+
+            # IDF = log(total documents / documents containing term)
+            df = document_frequency.get(term, 1)
+            idf = math.log(num_docs / df)
+
+            # TF-IDF = TF × IDF
+            tfidf = tf * idf
+
+            tfidf_scores.append({
+                'term': term,
+                'tf': round(tf, 4),
+                'idf': round(idf, 4),
+                'tfidf': round(tfidf, 4),
+                'count': term_frequency[term],
+                'document_frequency': df,
+                'uniqueness': 'high' if df == 1 else 'medium' if df <= num_docs / 2 else 'low'
+            })
+
+        # Sort by TF-IDF score
+        tfidf_scores.sort(key=lambda x: x['tfidf'], reverse=True)
+
+        return {
+            'total_documents': num_docs,
+            'scores': tfidf_scores[:50],  # Top 50 terms
+            'analysis': {
+                'unique_terms': len([s for s in tfidf_scores if s['uniqueness'] == 'high']),
+                'common_terms': len([s for s in tfidf_scores if s['uniqueness'] == 'low']),
+                'average_tfidf': round(sum(s['tfidf'] for s in tfidf_scores[:20]) / min(20, len(tfidf_scores)), 4) if tfidf_scores else 0
+            }
+        }
+
+    def batch_competitor_analysis(self, your_content: str, competitor_urls: List[str],
+                                  is_url: bool = False) -> Dict:
+        """
+        Analyze multiple competitor URLs and provide aggregated insights.
+
+        Args:
+            your_content: Your text content or URL
+            competitor_urls: List of competitor URLs (max 20)
+            is_url: Whether your_content is a URL
+
+        Returns:
+            Dictionary with batch analysis results
+        """
+        if not competitor_urls:
+            return {'error': 'No competitor URLs provided'}
+
+        if len(competitor_urls) > 20:
+            return {'error': 'Maximum 20 competitor URLs allowed'}
+
+        # Extract your content
+        try:
+            if is_url:
+                your_text, your_metadata = self.extract_from_url(your_content)
+            else:
+                your_text = your_content
+                your_metadata = {}
+
+            your_analysis = self.analyze(your_text, use_lemmatization=True, remove_stopwords=True)
+        except Exception as e:
+            return {'error': f'Failed to analyze your content: {str(e)}'}
+
+        # Analyze competitors concurrently
+        competitor_results = []
+        failed_urls = []
+
+        def analyze_competitor_url(url):
+            try:
+                comp_text, comp_metadata = self.extract_from_url(url)
+                comp_analysis = self.analyze(comp_text, use_lemmatization=True, remove_stopwords=True)
+                return {
+                    'url': url,
+                    'analysis': comp_analysis,
+                    'metadata': comp_metadata,
+                    'success': True
+                }
+            except Exception as e:
+                return {
+                    'url': url,
+                    'error': str(e),
+                    'success': False
+                }
+
+        # Use thread pool for concurrent fetching (max 5 concurrent)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_url = {executor.submit(analyze_competitor_url, url): url for url in competitor_urls}
+
+            for future in concurrent.futures.as_completed(future_to_url):
+                result = future.result()
+                if result['success']:
+                    competitor_results.append(result)
+                else:
+                    failed_urls.append(result)
+
+        if not competitor_results:
+            return {
+                'error': 'All competitor analyses failed',
+                'failed_urls': failed_urls
+            }
+
+        # Aggregate competitor data
+        all_competitor_keywords = Counter()
+        keyword_appearances = {}  # Track how many competitors use each keyword
+        competitor_densities = {}  # Track densities across competitors
+
+        for comp in competitor_results:
+            for kw in comp['analysis']['single_words'][:30]:
+                term = kw['term']
+                all_competitor_keywords[term] += kw['count']
+
+                if term not in keyword_appearances:
+                    keyword_appearances[term] = 0
+                    competitor_densities[term] = []
+
+                keyword_appearances[term] += 1
+                competitor_densities[term].append(kw['density'])
+
+        # Find your keywords
+        your_keywords = {kw['term']: kw for kw in your_analysis['single_words'][:30]}
+
+        # Calculate keyword gaps (in many competitors but not yours)
+        keyword_gaps = []
+        for term, appearances in keyword_appearances.items():
+            if term not in your_keywords and appearances >= len(competitor_results) * 0.5:
+                avg_density = sum(competitor_densities[term]) / len(competitor_densities[term])
+                keyword_gaps.append({
+                    'keyword': term,
+                    'competitor_count': appearances,
+                    'avg_density': round(avg_density, 2),
+                    'importance_score': round(appearances * avg_density, 2)
+                })
+
+        keyword_gaps.sort(key=lambda x: x['importance_score'], reverse=True)
+
+        # Find common keywords (in all/most competitors)
+        common_keywords = []
+        for term, appearances in keyword_appearances.items():
+            if appearances >= len(competitor_results) * 0.7:  # In 70%+ of competitors
+                avg_density = sum(competitor_densities[term]) / len(competitor_densities[term])
+                your_density = your_keywords.get(term, {}).get('density', 0)
+
+                common_keywords.append({
+                    'keyword': term,
+                    'competitor_count': appearances,
+                    'avg_competitor_density': round(avg_density, 2),
+                    'your_density': round(your_density, 2),
+                    'gap': round(avg_density - your_density, 2)
+                })
+
+        common_keywords.sort(key=lambda x: abs(x['gap']), reverse=True)
+
+        # Find your unique strengths
+        your_strengths = []
+        for term, kw_data in your_keywords.items():
+            if term not in keyword_appearances or keyword_appearances[term] < len(competitor_results) * 0.3:
+                your_strengths.append({
+                    'keyword': term,
+                    'your_density': kw_data['density'],
+                    'competitor_usage': keyword_appearances.get(term, 0)
+                })
+
+        your_strengths.sort(key=lambda x: x['your_density'], reverse=True)
+
+        # Calculate TF-IDF scores across all documents
+        all_documents = [your_text] + [comp['analysis'].get('text', '') for comp in competitor_results if 'text' in comp['analysis']]
+
+        # If we don't have the raw text, use keywords as proxy
+        if len(all_documents) == 1:
+            all_documents = []
+
+        tfidf_result = {}
+        if all_documents and len(all_documents) > 1:
+            top_keywords = [kw['term'] for kw in your_analysis['single_words'][:20]]
+            tfidf_result = self.calculate_tfidf(all_documents, keywords=top_keywords)
+
+        return {
+            'success': True,
+            'analyzed_competitors': len(competitor_results),
+            'failed_competitors': len(failed_urls),
+            'failed_urls': failed_urls,
+            'keyword_gaps': keyword_gaps[:20],
+            'common_keywords': common_keywords[:20],
+            'your_unique_strengths': your_strengths[:15],
+            'tfidf_scores': tfidf_result.get('scores', [])[:15] if tfidf_result else [],
+            'summary': {
+                'total_competitor_keywords': len(all_competitor_keywords),
+                'gaps_identified': len(keyword_gaps),
+                'common_keywords_found': len(common_keywords),
+                'your_unique_keywords': len(your_strengths),
+                'recommendation': self._generate_batch_recommendation(keyword_gaps, common_keywords, your_strengths)
+            },
+            'competitors': [
+                {
+                    'url': comp['url'],
+                    'title': comp['metadata'].get('title', 'N/A'),
+                    'total_words': comp['analysis']['total_words']
+                }
+                for comp in competitor_results
+            ]
+        }
+
+    def _generate_batch_recommendation(self, gaps, common, strengths):
+        """Generate strategic recommendation based on batch analysis."""
+        rec = []
+
+        if len(gaps) > 10:
+            rec.append(f"⚠️ {len(gaps)} keyword gaps identified - competitors are targeting keywords you're missing")
+
+        if len(common) > 5:
+            top_gap = common[0] if common else None
+            if top_gap and abs(top_gap['gap']) > 2:
+                rec.append(f"🎯 Focus on '{top_gap['keyword']}' - used by {top_gap['competitor_count']} competitors with avg density {top_gap['avg_competitor_density']}%")
+
+        if len(strengths) > 5:
+            rec.append(f"✅ You have {len(strengths)} unique keywords - maintain this differentiation")
+
+        return ' | '.join(rec) if rec else 'Your content is well-aligned with competitors'
+
     def analyze(self, text: str, use_lemmatization: bool = True,
                remove_stopwords: bool = True, metadata: Dict = None,
                calculate_prominence: bool = False) -> Dict:
@@ -848,6 +1116,132 @@ def compare_competitor():
         return jsonify({
             'success': False,
             'error': f'Comparison failed: {str(e)}'
+        }), 500
+
+
+@app.route('/api/tfidf-analysis', methods=['POST'])
+def tfidf_analysis():
+    """
+    Calculate TF-IDF scores comparing your content against competitors.
+
+    Accepts JSON with:
+        - your_content: Your text or URL
+        - competitor_urls: List of competitor URLs
+        - source_type: 'url' or 'text'
+
+    Returns:
+        JSON with TF-IDF scores
+    """
+    try:
+        data = request.json
+
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+        your_content = data.get('your_content', '')
+        competitor_urls = data.get('competitor_urls', [])
+        source_type = data.get('source_type', 'text')
+
+        if not your_content:
+            return jsonify({'success': False, 'error': 'Your content is required'}), 400
+
+        if not competitor_urls:
+            return jsonify({'success': False, 'error': 'At least one competitor URL required'}), 400
+
+        # Extract your content
+        if source_type == 'url':
+            your_text, _ = analyzer.extract_from_url(your_content)
+        else:
+            your_text = your_content
+
+        # Extract competitor content
+        documents = [your_text]
+        failed_urls = []
+
+        for url in competitor_urls[:10]:  # Max 10 for TF-IDF
+            try:
+                comp_text, _ = analyzer.extract_from_url(url)
+                documents.append(comp_text)
+            except Exception as e:
+                failed_urls.append({'url': url, 'error': str(e)})
+
+        if len(documents) < 2:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to fetch competitor content'
+            }), 400
+
+        # Calculate TF-IDF
+        tfidf_result = analyzer.calculate_tfidf(documents)
+
+        if 'error' in tfidf_result:
+            return jsonify({'success': False, 'error': tfidf_result['error']}), 400
+
+        return jsonify({
+            'success': True,
+            'tfidf': tfidf_result,
+            'documents_analyzed': len(documents),
+            'failed_urls': failed_urls
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'TF-IDF analysis failed: {str(e)}'
+        }), 500
+
+
+@app.route('/api/batch-competitor-analysis', methods=['POST'])
+def batch_competitor_analysis_endpoint():
+    """
+    Analyze multiple competitors at once and provide aggregated insights.
+
+    Accepts JSON with:
+        - your_content: Your text or URL
+        - competitor_urls: List of 2-20 competitor URLs
+        - source_type: 'url' or 'text'
+
+    Returns:
+        JSON with comprehensive batch analysis
+    """
+    try:
+        data = request.json
+
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+        your_content = data.get('your_content', '')
+        competitor_urls = data.get('competitor_urls', [])
+        source_type = data.get('source_type', 'text')
+
+        if not your_content:
+            return jsonify({'success': False, 'error': 'Your content is required'}), 400
+
+        if not competitor_urls or len(competitor_urls) < 2:
+            return jsonify({
+                'success': False,
+                'error': 'At least 2 competitor URLs required'
+            }), 400
+
+        if len(competitor_urls) > 20:
+            return jsonify({
+                'success': False,
+                'error': 'Maximum 20 competitor URLs allowed'
+            }), 400
+
+        # Perform batch analysis
+        is_url = source_type == 'url'
+        results = analyzer.batch_competitor_analysis(your_content, competitor_urls, is_url)
+
+        if 'error' in results:
+            return jsonify({'success': False, 'error': results['error']}), 400
+
+        return jsonify(results)
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Batch analysis failed: {str(e)}'
         }), 500
 
 
