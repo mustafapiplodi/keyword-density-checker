@@ -4,6 +4,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { OnboardingTour } from "@/components/OnboardingTour"
+import { SkipLink } from "@/components/SkipLink"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,8 +27,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <SkipLink />
           <div className="min-h-screen bg-background">
-            <header className="border-b">
+            <header className="border-b" role="banner">
               <div className="container mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -38,31 +40,33 @@ export default function RootLayout({
                       Professional SEO Analysis Tool
                     </p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <nav className="flex items-center gap-4" aria-label="Main navigation">
                     <a
                       href="https://github.com"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="Visit GitHub repository"
                     >
                       GitHub
                     </a>
                     <a
                       href="/docs"
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      aria-label="View documentation"
                     >
                       Documentation
                     </a>
                     <OnboardingTour />
                     <ThemeToggle />
-                  </div>
+                  </nav>
                 </div>
               </div>
             </header>
-          <main className="container mx-auto px-4 py-8">
+          <main id="main-content" className="container mx-auto px-4 py-8" role="main" tabIndex={-1}>
             {children}
           </main>
-            <footer className="border-t mt-12">
+            <footer className="border-t mt-12" role="contentinfo">
               <div className="container mx-auto px-4 py-6">
                 <p className="text-center text-sm text-muted-foreground">
                   Built with Next.js, Shadcn UI, and Flask

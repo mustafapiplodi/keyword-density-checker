@@ -24,6 +24,7 @@ import {
   exportPDF,
   batchCompetitorAnalysis
 } from "@/lib/api"
+import { generateCacheKey, getCachedResult, setCachedResult } from "@/lib/cache"
 import type { AnalyzeRequest, CompareRequest } from "@/lib/api"
 import type { AnalysisResults, ComparisonResults, BatchCompetitorResults } from "@/types"
 
@@ -46,10 +47,35 @@ export default function Home() {
     setResults(null)
 
     try {
+      // Generate cache key from request data
+      const contentForCache = data.text || data.url || ''
+      const cacheKey = generateCacheKey(contentForCache, {
+        n_grams: data.n_grams,
+        analyze_meta: data.analyze_meta,
+        calculate_prominence: data.calculate_prominence,
+        target_keyword: data.target_keyword,
+        cluster_keywords: data.cluster_keywords,
+      })
+
+      // Try to get from cache first
+      const cachedResult = getCachedResult(cacheKey)
+      if (cachedResult) {
+        console.log('Using cached analysis result')
+        setResults(cachedResult)
+        setLastAnalyzedUrl(data.url)
+        setLastAnalyzedText(data.text)
+        setIsAnalyzing(false)
+        return
+      }
+
+      // If not in cache, perform analysis
       const result = await analyzeContent(data)
       setResults(result)
       setLastAnalyzedUrl(data.url)
       setLastAnalyzedText(data.text)
+
+      // Cache the result
+      setCachedResult(cacheKey, result)
     } catch (err) {
       setAnalysisError(err instanceof Error ? err.message : "Analysis failed")
     } finally {
@@ -134,6 +160,13 @@ export default function Home() {
 
   return (
     <div className="space-y-8">
+      {/* Screen reader announcements for status updates */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {isAnalyzing && "Analyzing content..."}
+        {results && !isAnalyzing && "Analysis complete"}
+        {analysisError && `Error: ${analysisError}`}
+      </div>
+
       <div className="space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">
           SEO Content Analysis
@@ -150,15 +183,15 @@ export default function Home() {
       />
 
       {isAnalyzing && (
-        <div className="space-y-6">
+        <div className="space-y-6" role="alert" aria-busy="true">
           <AnalysisSkeleton />
         </div>
       )}
 
       {!isAnalyzing && results && (
-        <div className="space-y-6">
+        <div className="space-y-6" role="region" aria-label="Analysis results">
           <Tabs defaultValue="results" className="w-full">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-7" role="tablist" aria-label="Analysis sections">
               <TabsTrigger value="results">Results</TabsTrigger>
               <TabsTrigger value="visualization">Charts</TabsTrigger>
               <TabsTrigger value="seo">SEO</TabsTrigger>
