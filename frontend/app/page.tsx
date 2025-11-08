@@ -5,6 +5,8 @@ import { AnalysisForm } from "@/components/AnalysisForm"
 import { ResultsDisplay } from "@/components/ResultsDisplay"
 import { MetaAnalysisDisplay } from "@/components/MetaAnalysisDisplay"
 import { ProminenceScoresDisplay } from "@/components/ProminenceScoresDisplay"
+import { ReadabilityScoresDisplay } from "@/components/ReadabilityScoresDisplay"
+import { ContentStructureDisplay } from "@/components/ContentStructureDisplay"
 import { VisualizationChart } from "@/components/VisualizationChart"
 import { CompetitorComparison } from "@/components/CompetitorComparison"
 import { BatchCompetitorAnalysis } from "@/components/BatchCompetitorAnalysis"
@@ -125,9 +127,10 @@ export default function Home() {
       {results && (
         <div className="space-y-6">
           <Tabs defaultValue="results" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="results">Results</TabsTrigger>
               <TabsTrigger value="visualization">Charts</TabsTrigger>
+              <TabsTrigger value="quality">Content Quality</TabsTrigger>
               <TabsTrigger value="meta">Meta Tags</TabsTrigger>
               <TabsTrigger value="competitor">1 Competitor</TabsTrigger>
               <TabsTrigger value="batch">Batch Analysis</TabsTrigger>
@@ -164,6 +167,22 @@ export default function Home() {
                   title="Three-Word Phrases"
                   description="Top three-word phrases by density"
                 />
+              )}
+            </TabsContent>
+
+            <TabsContent value="quality" className="space-y-6">
+              {results.readability_scores && (
+                <ReadabilityScoresDisplay scores={results.readability_scores} />
+              )}
+
+              {results.content_structure && (
+                <ContentStructureDisplay structure={results.content_structure} />
+              )}
+
+              {!results.readability_scores && !results.content_structure && (
+                <div className="text-center text-muted-foreground p-8 border rounded-lg">
+                  Content quality analysis not available for this content
+                </div>
               )}
             </TabsContent>
 

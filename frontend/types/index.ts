@@ -68,6 +68,74 @@ export interface ProminenceScore {
   }
 }
 
+export interface ReadabilityScores {
+  flesch_reading_ease: number
+  flesch_kincaid_grade: number
+  gunning_fog_index: number
+  smog_index: number
+  reading_level: string
+  statistics: {
+    total_sentences: number
+    total_words: number
+    total_syllables: number
+    complex_words: number
+    avg_sentence_length: number
+    avg_syllables_per_word: number
+    avg_word_length: number
+  }
+  recommendations: Array<{
+    type: string
+    severity: string
+    message: string
+    suggestion: string
+  }>
+}
+
+export interface ContentStructure {
+  paragraphs: {
+    total: number
+    avg_words: number
+    min_words: number
+    max_words: number
+    short_paragraphs: number
+    long_paragraphs: number
+  }
+  sentences: {
+    total: number
+    avg_words: number
+    short: number
+    medium: number
+    long: number
+    variety_score: number
+  }
+  headings: {
+    data: {
+      [key: string]: {
+        count: number
+        texts: string[]
+      }
+    }
+    issues: string[]
+    total_headings: number
+  }
+  links: {
+    total: number
+    internal: number
+    external: number
+    external_urls: string[]
+  }
+  images: {
+    total: number
+    with_alt: number
+    without_alt: number
+    alt_text_coverage: number
+  }
+  multimedia: {
+    videos: number
+    has_multimedia: boolean
+  }
+}
+
 export interface AnalysisResults {
   total_words: number
   unique_words: number
@@ -82,6 +150,8 @@ export interface AnalysisResults {
   }
   meta_analysis?: MetaAnalysis
   prominence_scores?: ProminenceScore[]
+  readability_scores?: ReadabilityScores
+  content_structure?: ContentStructure
   metadata?: any
 }
 

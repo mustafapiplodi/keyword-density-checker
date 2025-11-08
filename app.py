@@ -502,7 +502,7 @@ class KeywordDensityAnalyzer:
         """
         try:
             # Analyze competitor
-            competitor_text, competitor_metadata = self.extract_from_url(competitor_url)
+            competitor_text, competitor_metadata, _ = self.extract_from_url(competitor_url)
             competitor_analysis = self.analyze(competitor_text, use_lemmatization=True, remove_stopwords=True)
 
             # Compare metrics
@@ -939,7 +939,7 @@ class KeywordDensityAnalyzer:
         # Extract your content
         try:
             if is_url:
-                your_text, your_metadata = self.extract_from_url(your_content)
+                your_text, your_metadata, _ = self.extract_from_url(your_content)
             else:
                 your_text = your_content
                 your_metadata = {}
@@ -954,7 +954,7 @@ class KeywordDensityAnalyzer:
 
         def analyze_competitor_url(url):
             try:
-                comp_text, comp_metadata = self.extract_from_url(url)
+                comp_text, comp_metadata, _ = self.extract_from_url(url)
                 comp_analysis = self.analyze(comp_text, use_lemmatization=True, remove_stopwords=True)
                 return {
                     'url': url,
@@ -1106,7 +1106,10 @@ class KeywordDensityAnalyzer:
 
     def analyze(self, text: str, use_lemmatization: bool = True,
                remove_stopwords: bool = True, metadata: Dict = None,
-               calculate_prominence: bool = False) -> Dict:
+               calculate_prominence: bool = False,
+               calculate_readability: bool = False,
+               analyze_structure: bool = False,
+               html_content: str = None) -> Dict:
         """
         Perform comprehensive keyword density analysis.
 
@@ -1116,6 +1119,9 @@ class KeywordDensityAnalyzer:
             remove_stopwords: Whether to remove stopwords
             metadata: Optional metadata for meta tag analysis
             calculate_prominence: Whether to calculate prominence scores
+            calculate_readability: Whether to calculate readability scores
+            analyze_structure: Whether to analyze content structure
+            html_content: Optional HTML content for structure analysis
 
         Returns:
             Dictionary with complete analysis results
@@ -1169,6 +1175,17 @@ class KeywordDensityAnalyzer:
                 prominence = self.calculate_prominence_score(item['term'], text, metadata)
                 results['prominence_scores'].append(prominence)
 
+        # Phase 5: Readability analysis
+        if calculate_readability:
+            readability = self.calculate_readability_scores(text)
+            if 'error' not in readability:
+                results['readability_scores'] = readability
+
+        # Phase 5: Content structure analysis
+        if analyze_structure and html_content:
+            structure = self.analyze_content_structure(text, html_content)
+            results['content_structure'] = structure
+
         return results
 
 
@@ -1212,8 +1229,9 @@ def analyze_endpoint():
 
         # Extract content based on source type
         metadata = {}
+        html_content = None
         if source_type == 'url':
-            text, metadata = analyzer.extract_from_url(content)
+            text, metadata, html_content = analyzer.extract_from_url(content)
         else:
             text = content
 
@@ -1233,13 +1251,20 @@ def analyze_endpoint():
         # Phase 2: Check if advanced features are requested
         calculate_prominence = data.get('calculate_prominence', source_type == 'url')
 
-        # Perform analysis with Phase 2 features
+        # Phase 5: Check if readability and structure analysis are requested
+        calculate_readability = data.get('calculate_readability', True)  # Default enabled
+        analyze_structure = data.get('analyze_structure', source_type == 'url')
+
+        # Perform analysis with all features
         results = analyzer.analyze(
             text,
             use_lemmatization,
             remove_stopwords,
             metadata=metadata if metadata else None,
-            calculate_prominence=calculate_prominence
+            calculate_prominence=calculate_prominence,
+            calculate_readability=calculate_readability,
+            analyze_structure=analyze_structure,
+            html_content=html_content
         )
 
         if 'error' in results:
@@ -1363,7 +1388,7 @@ def compare_competitor():
 
         # Analyze your content
         if source_type == 'url':
-            your_text, your_metadata = analyzer.extract_from_url(your_content)
+            your_text, your_metadata, _ = analyzer.extract_from_url(your_content)
         else:
             your_text = your_content
             your_metadata = {}
@@ -1416,7 +1441,7 @@ def tfidf_analysis():
 
         # Extract your content
         if source_type == 'url':
-            your_text, _ = analyzer.extract_from_url(your_content)
+            your_text, _, _ = analyzer.extract_from_url(your_content)
         else:
             your_text = your_content
 
@@ -1426,7 +1451,7 @@ def tfidf_analysis():
 
         for url in competitor_urls[:10]:  # Max 10 for TF-IDF
             try:
-                comp_text, _ = analyzer.extract_from_url(url)
+                comp_text, _, _ = analyzer.extract_from_url(url)
                 documents.append(comp_text)
             except Exception as e:
                 failed_urls.append({'url': url, 'error': str(e)})
