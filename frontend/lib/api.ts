@@ -13,6 +13,8 @@ export interface AnalyzeRequest {
   n_grams?: number[]
   analyze_meta?: boolean
   calculate_prominence?: boolean
+  target_keyword?: string
+  cluster_keywords?: boolean
 }
 
 export interface CompareRequest {

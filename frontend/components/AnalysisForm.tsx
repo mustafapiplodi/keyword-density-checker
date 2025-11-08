@@ -25,6 +25,8 @@ export function AnalysisForm({ onSubmit, isLoading, error }: AnalysisFormProps) 
   const [analyzeMeta, setAnalyzeMeta] = useState(true)
   const [calculateProminence, setCalculateProminence] = useState(true)
   const [selectedNGrams, setSelectedNGrams] = useState([1, 2, 3, 4])
+  const [targetKeyword, setTargetKeyword] = useState("")
+  const [clusterKeywords, setClusterKeywords] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +35,8 @@ export function AnalysisForm({ onSubmit, isLoading, error }: AnalysisFormProps) 
       n_grams: selectedNGrams,
       analyze_meta: analyzeMeta,
       calculate_prominence: calculateProminence,
+      target_keyword: targetKeyword.trim() || undefined,
+      cluster_keywords: clusterKeywords,
     }
 
     if (activeTab === "text") {
@@ -164,6 +168,34 @@ export function AnalysisForm({ onSubmit, isLoading, error }: AnalysisFormProps) 
                   onCheckedChange={setCalculateProminence}
                 />
               </div>
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="cluster">Keyword Clustering</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Group related keywords by semantic similarity
+                  </p>
+                </div>
+                <Switch
+                  id="cluster"
+                  checked={clusterKeywords}
+                  onCheckedChange={setClusterKeywords}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="target-keyword">Target Keyword (Optional)</Label>
+              <Input
+                id="target-keyword"
+                type="text"
+                placeholder="e.g., keyword density checker"
+                value={targetKeyword}
+                onChange={(e) => setTargetKeyword(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Analyze how well your content is optimized for a specific keyword
+              </p>
             </div>
           </div>
 

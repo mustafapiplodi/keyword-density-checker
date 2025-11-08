@@ -1104,12 +1104,200 @@ class KeywordDensityAnalyzer:
 
         return ' | '.join(rec) if rec else 'Your content is well-aligned with competitors'
 
+    def analyze_target_keyword(self, text: str, target_keyword: str, metadata: Dict = None) -> Dict:
+        """
+        Analyze how well content is optimized for a target keyword.
+
+        Args:
+            text: Content text
+            target_keyword: The target keyword to optimize for
+            metadata: Optional metadata (title, headings, etc.)
+
+        Returns:
+            Dictionary with optimization score and recommendations
+        """
+        target_lower = target_keyword.lower()
+        text_lower = text.lower()
+
+        # Count occurrences
+        count = text_lower.count(target_lower)
+        words = len(text.split())
+        density = (count / words * 100) if words > 0 else 0
+
+        # Calculate optimization score (0-100)
+        score = 0
+        recommendations = []
+        findings = {}
+
+        # 1. Density check (30 points)
+        if 1 <= density <= 2.5:
+            score += 30
+            findings['density'] = {'score': 30, 'status': 'optimal', 'value': density}
+        elif 0.5 <= density < 1 or 2.5 < density <= 3:
+            score += 20
+            findings['density'] = {'score': 20, 'status': 'acceptable', 'value': density}
+            recommendations.append(f"Adjust keyword density (current: {density:.2f}%, target: 1-2.5%)")
+        else:
+            score += 5
+            findings['density'] = {'score': 5, 'status': 'poor', 'value': density}
+            recommendations.append(f"Keyword density is {density:.2f}% (target: 1-2.5%)")
+
+        # 2. Title presence (20 points)
+        if metadata and 'title' in metadata:
+            title = metadata['title'].lower()
+            if target_lower in title:
+                score += 20
+                findings['title'] = {'score': 20, 'status': 'present', 'text': metadata['title']}
+            else:
+                findings['title'] = {'score': 0, 'status': 'missing', 'text': metadata['title']}
+                recommendations.append(f"Add '{target_keyword}' to the title tag")
+
+        # 3. H1 presence (15 points)
+        if metadata and 'h1' in metadata and metadata['h1']:
+            h1_text = ' '.join(metadata['h1']).lower()
+            if target_lower in h1_text:
+                score += 15
+                findings['h1'] = {'score': 15, 'status': 'present'}
+            else:
+                findings['h1'] = {'score': 0, 'status': 'missing'}
+                recommendations.append(f"Add '{target_keyword}' to an H1 heading")
+
+        # 4. First 100 words (15 points)
+        first_100 = ' '.join(text.split()[:100]).lower()
+        if target_lower in first_100:
+            score += 15
+            findings['first_100'] = {'score': 15, 'status': 'present'}
+        else:
+            findings['first_100'] = {'score': 0, 'status': 'missing'}
+            recommendations.append(f"Include '{target_keyword}' in the first 100 words")
+
+        # 5. Meta description (10 points)
+        if metadata and 'meta_description' in metadata and metadata['meta_description']:
+            meta_desc = metadata['meta_description'].lower()
+            if target_lower in meta_desc:
+                score += 10
+                findings['meta_description'] = {'score': 10, 'status': 'present'}
+            else:
+                findings['meta_description'] = {'score': 0, 'status': 'missing'}
+                recommendations.append(f"Add '{target_keyword}' to meta description")
+
+        # 6. URL slug (10 points)
+        if metadata and 'url' in metadata:
+            url = metadata['url'].lower()
+            if target_lower in url:
+                score += 10
+                findings['url'] = {'score': 10, 'status': 'present'}
+            else:
+                findings['url'] = {'score': 0, 'status': 'missing'}
+                recommendations.append(f"Include '{target_keyword}' in the URL")
+
+        # Determine overall grade
+        if score >= 90:
+            grade = 'A'
+            status = 'Excellent'
+        elif score >= 80:
+            grade = 'B'
+            status = 'Good'
+        elif score >= 70:
+            grade = 'C'
+            status = 'Fair'
+        elif score >= 60:
+            grade = 'D'
+            status = 'Needs Improvement'
+        else:
+            grade = 'F'
+            status = 'Poor'
+
+        return {
+            'target_keyword': target_keyword,
+            'score': score,
+            'grade': grade,
+            'status': status,
+            'count': count,
+            'density': round(density, 2),
+            'findings': findings,
+            'recommendations': recommendations
+        }
+
+    def cluster_keywords(self, keywords: List[Dict], max_clusters: int = 5) -> Dict:
+        """
+        Cluster similar keywords together based on semantic similarity.
+
+        Args:
+            keywords: List of keyword dictionaries with 'term', 'count', 'density'
+            max_clusters: Maximum number of clusters to create
+
+        Returns:
+            Dictionary with clustered keywords
+        """
+        if not keywords:
+            return {'clusters': []}
+
+        # Simple clustering based on word overlap
+        clusters = []
+        used_indices = set()
+
+        for i, kw in enumerate(keywords):
+            if i in used_indices:
+                continue
+
+            # Start new cluster
+            cluster = {
+                'main_keyword': kw['term'],
+                'keywords': [kw],
+                'total_count': kw['count'],
+                'avg_density': kw['density']
+            }
+            used_indices.add(i)
+
+            # Find similar keywords
+            kw_words = set(kw['term'].split())
+
+            for j, other_kw in enumerate(keywords[i+1:], start=i+1):
+                if j in used_indices:
+                    continue
+
+                other_words = set(other_kw['term'].split())
+
+                # Check word overlap (at least 50% overlap for multi-word, exact match substring for single words)
+                if len(kw_words) > 1 and len(other_words) > 1:
+                    overlap = len(kw_words & other_words)
+                    if overlap / min(len(kw_words), len(other_words)) >= 0.5:
+                        cluster['keywords'].append(other_kw)
+                        cluster['total_count'] += other_kw['count']
+                        used_indices.add(j)
+                elif len(kw_words) == 1 or len(other_words) == 1:
+                    # For single words, check if one contains the other
+                    if any(word in other_kw['term'] or other_kw['term'] in word for word in kw_words):
+                        cluster['keywords'].append(other_kw)
+                        cluster['total_count'] += other_kw['count']
+                        used_indices.add(j)
+
+            # Calculate average density for cluster
+            cluster['avg_density'] = sum(k['density'] for k in cluster['keywords']) / len(cluster['keywords'])
+            cluster['keyword_count'] = len(cluster['keywords'])
+
+            clusters.append(cluster)
+
+            if len(clusters) >= max_clusters * 3:  # Stop if we have too many
+                break
+
+        # Sort by total count descending
+        clusters.sort(key=lambda x: x['total_count'], reverse=True)
+
+        return {
+            'clusters': clusters[:max_clusters],
+            'total_clusters': len(clusters)
+        }
+
     def analyze(self, text: str, use_lemmatization: bool = True,
                remove_stopwords: bool = True, metadata: Dict = None,
                calculate_prominence: bool = False,
                calculate_readability: bool = False,
                analyze_structure: bool = False,
-               html_content: str = None) -> Dict:
+               html_content: str = None,
+               target_keyword: str = None,
+               cluster_keywords: bool = False) -> Dict:
         """
         Perform comprehensive keyword density analysis.
 
@@ -1122,6 +1310,8 @@ class KeywordDensityAnalyzer:
             calculate_readability: Whether to calculate readability scores
             analyze_structure: Whether to analyze content structure
             html_content: Optional HTML content for structure analysis
+            target_keyword: Optional target keyword for optimization analysis
+            cluster_keywords: Whether to cluster similar keywords
 
         Returns:
             Dictionary with complete analysis results
@@ -1185,6 +1375,16 @@ class KeywordDensityAnalyzer:
         if analyze_structure and html_content:
             structure = self.analyze_content_structure(text, html_content)
             results['content_structure'] = structure
+
+        # Phase 6: Target keyword analysis
+        if target_keyword:
+            target_analysis = self.analyze_target_keyword(text, target_keyword, metadata)
+            results['target_keyword_analysis'] = target_analysis
+
+        # Phase 6: Keyword clustering
+        if cluster_keywords and results['single_words']:
+            clusters = self.cluster_keywords(results['single_words'][:30])
+            results['keyword_clusters'] = clusters
 
         return results
 
@@ -1255,6 +1455,10 @@ def analyze_endpoint():
         calculate_readability = data.get('calculate_readability', True)  # Default enabled
         analyze_structure = data.get('analyze_structure', source_type == 'url')
 
+        # Phase 6: Check for target keyword and clustering
+        target_keyword = data.get('target_keyword')
+        cluster_keywords = data.get('cluster_keywords', False)
+
         # Perform analysis with all features
         results = analyzer.analyze(
             text,
@@ -1264,7 +1468,9 @@ def analyze_endpoint():
             calculate_prominence=calculate_prominence,
             calculate_readability=calculate_readability,
             analyze_structure=analyze_structure,
-            html_content=html_content
+            html_content=html_content,
+            target_keyword=target_keyword,
+            cluster_keywords=cluster_keywords
         )
 
         if 'error' in results:

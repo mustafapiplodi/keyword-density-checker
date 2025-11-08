@@ -10,10 +10,13 @@ import { ContentStructureDisplay } from "@/components/ContentStructureDisplay"
 import { VisualizationChart } from "@/components/VisualizationChart"
 import { KeywordWordCloud } from "@/components/KeywordWordCloud"
 import { KeywordHeatmap } from "@/components/KeywordHeatmap"
+import { TargetKeywordAnalysis } from "@/components/TargetKeywordAnalysis"
+import { KeywordClusters } from "@/components/KeywordClusters"
 import { CompetitorComparison } from "@/components/CompetitorComparison"
 import { BatchCompetitorAnalysis } from "@/components/BatchCompetitorAnalysis"
 import { AnalysisSkeleton, ChartSkeleton, ContentQualitySkeleton } from "@/components/LoadingSkeletons"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   analyzeContent,
   compareCompetitor,
@@ -136,9 +139,10 @@ export default function Home() {
       {!isAnalyzing && results && (
         <div className="space-y-6">
           <Tabs defaultValue="results" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="results">Results</TabsTrigger>
               <TabsTrigger value="visualization">Charts</TabsTrigger>
+              <TabsTrigger value="seo">SEO</TabsTrigger>
               <TabsTrigger value="quality">Content Quality</TabsTrigger>
               <TabsTrigger value="meta">Meta Tags</TabsTrigger>
               <TabsTrigger value="competitor">1 Competitor</TabsTrigger>
@@ -200,6 +204,44 @@ export default function Home() {
                       title="Keyword Density Heatmap"
                       description="Interactive heatmap showing keyword density distribution"
                     />
+                  )}
+                </>
+              )}
+            </TabsContent>
+
+            <TabsContent value="seo" className="space-y-6">
+              {isAnalyzing ? (
+                <ChartSkeleton />
+              ) : (
+                <>
+                  {results.target_keyword_analysis ? (
+                    <TargetKeywordAnalysis data={results.target_keyword_analysis} />
+                  ) : (
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="text-center text-muted-foreground p-8">
+                          <p className="mb-2 font-medium">No target keyword specified</p>
+                          <p className="text-sm">
+                            Enter a target keyword in the analysis form to get optimization insights
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {results.keyword_clusters ? (
+                    <KeywordClusters data={results.keyword_clusters} />
+                  ) : (
+                    <Card>
+                      <CardContent className="pt-6">
+                        <div className="text-center text-muted-foreground p-8">
+                          <p className="mb-2 font-medium">Keyword clustering not enabled</p>
+                          <p className="text-sm">
+                            Enable keyword clustering in the analysis form to see related keyword groups
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
                   )}
                 </>
               )}

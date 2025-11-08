@@ -136,6 +136,37 @@ export interface ContentStructure {
   }
 }
 
+export interface TargetKeywordAnalysis {
+  target_keyword: string
+  score: number
+  grade: string
+  status: string
+  count: number
+  density: number
+  findings: {
+    density?: { score: number; status: string; value: number }
+    title?: { score: number; status: string; text?: string }
+    h1?: { score: number; status: string }
+    first_100?: { score: number; status: string }
+    meta_description?: { score: number; status: string }
+    url?: { score: number; status: string }
+  }
+  recommendations: string[]
+}
+
+export interface KeywordCluster {
+  main_keyword: string
+  keywords: KeywordItem[]
+  total_count: number
+  avg_density: number
+  keyword_count: number
+}
+
+export interface KeywordClusters {
+  clusters: KeywordCluster[]
+  total_clusters: number
+}
+
 export interface AnalysisResults {
   total_words: number
   unique_words: number
@@ -152,6 +183,8 @@ export interface AnalysisResults {
   prominence_scores?: ProminenceScore[]
   readability_scores?: ReadabilityScores
   content_structure?: ContentStructure
+  target_keyword_analysis?: TargetKeywordAnalysis
+  keyword_clusters?: KeywordClusters
   metadata?: any
 }
 
