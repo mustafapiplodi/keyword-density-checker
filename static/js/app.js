@@ -193,6 +193,19 @@ function displayResults(results) {
     populateTable('2-word-tbody', results.two_word_phrases);
     populateTable('3-word-tbody', results.three_word_phrases);
     populateTable('4-word-tbody', results.four_word_phrases);
+
+    // Phase 2: Display visualizations
+    displayVisualization(results);
+
+    // Phase 2: Display meta tag analysis (if available)
+    if (results.meta_analysis) {
+        displayMetaAnalysis(results.meta_analysis);
+    }
+
+    // Phase 2: Display prominence scores (if available)
+    if (results.prominence_scores) {
+        displayProminenceScores(results.prominence_scores);
+    }
 }
 
 /**
@@ -379,7 +392,406 @@ function isValidUrl(string) {
     }
 }
 
+/**
+ * Phase 2: Display visualizations with Chart.js
+ */
+function displayVisualization(results) {
+    const visualizationsSection = document.getElementById('visualizations-section');
+
+    // Show section
+    visualizationsSection.classList.remove('hidden');
+
+    // Get top 15 keywords for chart
+    const topKeywords = results.single_words.slice(0, 15);
+
+    // Destroy existing chart if it exists
+    const canvas = document.getElementById('keyword-chart');
+    const existingChart = Chart.getChart(canvas);
+    if (existingChart) {
+        existingChart.destroy();
+    }
+
+    // Create new chart
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: topKeywords.map(item => item.term),
+            datasets: [{
+                label: 'Keyword Frequency',
+                data: topKeywords.map(item => item.count),
+                backgroundColor: topKeywords.map(item => {
+                    switch(item.status) {
+                        case 'critical': return 'rgba(239, 68, 68, 0.7)';
+                        case 'warning': return 'rgba(245, 158, 11, 0.7)';
+                        case 'caution': return 'rgba(251, 191, 36, 0.7)';
+                        default: return 'rgba(16, 185, 129, 0.7)';
+                    }
+                }),
+                borderColor: topKeywords.map(item => {
+                    switch(item.status) {
+                        case 'critical': return 'rgb(239, 68, 68)';
+                        case 'warning': return 'rgb(245, 158, 11)';
+                        case 'caution': return 'rgb(251, 191, 36)';
+                        default: return 'rgb(16, 185, 129)';
+                    }
+                }),
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Top 15 Keywords by Frequency'
+                },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            const item = topKeywords[context.dataIndex];
+                            return `Density: ${item.density}%`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Frequency'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Keywords'
+                    }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Phase 2: Display meta tag analysis
+ */
+function displayMetaAnalysis(metaAnalysis) {
+    const metaSection = document.getElementById('meta-analysis-section');
+    const metaContent = document.getElementById('meta-analysis-content');
+
+    if (!metaAnalysis) return;
+
+    metaSection.classList.remove('hidden');
+
+    let html = '<div class="meta-tag-grid">';
+
+    // Title Tag
+    html += `<div class="meta-tag-card">
+        <h4>Title Tag</h4>
+        <p><strong>Content:</strong> ${metaAnalysis.title.text || '(Missing)'}</p>
+        <ul class="meta-tag-list">`;
+
+    metaAnalysis.title.present.forEach(kw => {
+        html += `<li class="meta-present">${kw}</li>`;
+    });
+    metaAnalysis.title.missing.forEach(kw => {
+        html += `<li class="meta-missing">${kw}</li>`;
+    });
+    html += `</ul></div>`;
+
+    // Meta Description
+    html += `<div class="meta-tag-card">
+        <h4>Meta Description</h4>
+        <p><strong>Content:</strong> ${metaAnalysis.meta_description.text || '(Missing)'}</p>
+        <ul class="meta-tag-list">`;
+
+    metaAnalysis.meta_description.present.forEach(kw => {
+        html += `<li class="meta-present">${kw}</li>`;
+    });
+    metaAnalysis.meta_description.missing.forEach(kw => {
+        html += `<li class="meta-missing">${kw}</li>`;
+    });
+    html += `</ul></div>`;
+
+    // H1 Tags
+    html += `<div class="meta-tag-card">
+        <h4>H1 Tags (${metaAnalysis.h1.count})</h4>
+        <ul class="meta-tag-list">`;
+
+    metaAnalysis.h1.present.forEach(kw => {
+        html += `<li class="meta-present">${kw}</li>`;
+    });
+    metaAnalysis.h1.missing.forEach(kw => {
+        html += `<li class="meta-missing">${kw}</li>`;
+    });
+    html += `</ul></div>`;
+
+    // H2 Tags
+    html += `<div class="meta-tag-card">
+        <h4>H2 Tags (${metaAnalysis.h2.count})</h4>
+        <ul class="meta-tag-list">`;
+
+    metaAnalysis.h2.present.forEach(kw => {
+        html += `<li class="meta-present">${kw}</li>`;
+    });
+    metaAnalysis.h2.missing.forEach(kw => {
+        html += `<li class="meta-missing">${kw}</li>`;
+    });
+    html += `</ul></div>`;
+
+    html += '</div>';
+
+    // Add recommendations if any
+    if (metaAnalysis.recommendations && metaAnalysis.recommendations.length > 0) {
+        html += '<h3 style="margin-top: 1.5rem;">Meta Tag Recommendations</h3>';
+        metaAnalysis.recommendations.forEach(rec => {
+            const className = rec.type === 'critical' ? 'recommendation-item critical' : 'recommendation-item warning';
+            html += `<div class="${className}">
+                <div class="rec-header ${rec.type}">${rec.issue}</div>
+                <div class="rec-detail"><strong>Action:</strong> ${rec.action}</div>
+            </div>`;
+        });
+    }
+
+    metaContent.innerHTML = html;
+}
+
+/**
+ * Phase 2: Display prominence scores
+ */
+function displayProminenceScores(prominenceScores) {
+    const prominenceSection = document.getElementById('prominence-section');
+    const prominenceContent = document.getElementById('prominence-content');
+
+    if (!prominenceScores || prominenceScores.length === 0) return;
+
+    prominenceSection.classList.remove('hidden');
+
+    let html = '<div class="prominence-grid">';
+
+    prominenceScores.forEach(score => {
+        const ratingClass = score.rating.toLowerCase().replace(' ', '-');
+
+        html += `<div class="prominence-card">
+            <div class="prominence-keyword">"${score.keyword}"</div>
+            <div class="prominence-score">${score.total_score}</div>
+            <span class="prominence-rating ${ratingClass}">${score.rating}</span>
+
+            <div class="prominence-breakdown">
+                <div class="breakdown-item">
+                    <span>Title Tag (10x)</span>
+                    <span>${score.breakdown.title.count} × 10 = ${score.breakdown.title.score}</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>H1 (8x)</span>
+                    <span>${score.breakdown.h1.count} × 8 = ${score.breakdown.h1.score}</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>First 100 Words (7x)</span>
+                    <span>${score.breakdown.first_100_words.count} × 7 = ${score.breakdown.first_100_words.score}</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>H2/H3 (6x)</span>
+                    <span>${score.breakdown.h2_h3.count} × 6 = ${score.breakdown.h2_h3.score}</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>URL (5x)</span>
+                    <span>${score.breakdown.url.count} × 5 = ${score.breakdown.url.score}</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>Meta Description (4x)</span>
+                    <span>${score.breakdown.meta_description.count} × 4 = ${score.breakdown.meta_description.score}</span>
+                </div>
+                <div class="breakdown-item">
+                    <span>Body (1x)</span>
+                    <span>${score.breakdown.body.count} × 1 = ${score.breakdown.body.score}</span>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    html += '</div>';
+    prominenceContent.innerHTML = html;
+}
+
+// Phase 2: Competitor comparison tab switching
+document.querySelectorAll('.comp-tab-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        document.querySelectorAll('.comp-tab-btn').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        const tabName = button.getAttribute('data-tab');
+        document.querySelectorAll('.comp-tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        document.getElementById(`${tabName}-content`).classList.add('active');
+    });
+});
+
+// Phase 2: Competitor comparison handler
+const compareBtn = document.getElementById('compare-btn');
+const competitorUrlInput = document.getElementById('competitor-url');
+const competitorLoading = document.getElementById('competitor-loading');
+const competitorError = document.getElementById('competitor-error');
+const competitorResults = document.getElementById('competitor-results');
+
+compareBtn.addEventListener('click', async () => {
+    const competitorUrl = competitorUrlInput.value.trim();
+
+    if (!competitorUrl) {
+        showCompetitorError('Please enter a competitor URL');
+        return;
+    }
+
+    if (!isValidUrl(competitorUrl)) {
+        showCompetitorError('Please enter a valid URL');
+        return;
+    }
+
+    if (!currentResults) {
+        showCompetitorError('Please analyze your content first');
+        return;
+    }
+
+    // Show loading
+    competitorLoading.classList.remove('hidden');
+    competitorError.classList.add('hidden');
+    competitorResults.classList.add('hidden');
+    compareBtn.disabled = true;
+
+    try {
+        const response = await fetch('/api/compare-competitor', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                your_content: currentSourceType === 'url' ? urlInput.value : textInput.value,
+                competitor_url: competitorUrl,
+                source_type: currentSourceType
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || 'Comparison failed');
+        }
+
+        displayCompetitorComparison(data.comparison);
+        competitorResults.classList.remove('hidden');
+
+    } catch (error) {
+        showCompetitorError(error.message);
+    } finally {
+        competitorLoading.classList.add('hidden');
+        compareBtn.disabled = false;
+    }
+});
+
+function displayCompetitorComparison(comparison) {
+    // Display stats
+    const yourStatsEl = document.getElementById('your-stats');
+    const competitorStatsEl = document.getElementById('competitor-stats');
+
+    yourStatsEl.innerHTML = `
+        <div class="stat-item">
+            <span>Total Words:</span>
+            <strong>${comparison.your_stats.total_words.toLocaleString()}</strong>
+        </div>
+        <div class="stat-item">
+            <span>Unique Keywords:</span>
+            <strong>${comparison.your_stats.unique_words.toLocaleString()}</strong>
+        </div>
+        ${comparison.your_stats.top_keyword ? `
+        <div class="stat-item">
+            <span>Top Keyword:</span>
+            <strong>${comparison.your_stats.top_keyword.term} (${comparison.your_stats.top_keyword.density}%)</strong>
+        </div>
+        ` : ''}
+    `;
+
+    competitorStatsEl.innerHTML = `
+        <div class="stat-item">
+            <span>Total Words:</span>
+            <strong>${comparison.competitor_stats.total_words.toLocaleString()}</strong>
+        </div>
+        <div class="stat-item">
+            <span>Unique Keywords:</span>
+            <strong>${comparison.competitor_stats.unique_words.toLocaleString()}</strong>
+        </div>
+        ${comparison.competitor_stats.top_keyword ? `
+        <div class="stat-item">
+            <span>Top Keyword:</span>
+            <strong>${comparison.competitor_stats.top_keyword.term} (${comparison.competitor_stats.top_keyword.density}%)</strong>
+        </div>
+        ` : ''}
+    `;
+
+    // Display keyword gaps
+    const gapsContent = document.getElementById('gaps-content');
+    if (comparison.keyword_gaps && comparison.keyword_gaps.length > 0) {
+        gapsContent.innerHTML = comparison.keyword_gaps.map(gap => `
+            <div class="keyword-gap-item">
+                <div class="gap-keyword">${gap.keyword}</div>
+                <div class="gap-stats">
+                    <span>Competitor: ${gap.competitor_count} times (${gap.competitor_density}%)</span>
+                    <span>You: ${gap.your_count} times</span>
+                </div>
+                <div class="gap-recommendation">${gap.recommendation}</div>
+            </div>
+        `).join('');
+    } else {
+        gapsContent.innerHTML = '<p>No significant keyword gaps found!</p>';
+    }
+
+    // Display opportunities
+    const opportunitiesContent = document.getElementById('opportunities-content');
+    if (comparison.opportunities && comparison.opportunities.length > 0) {
+        opportunitiesContent.innerHTML = comparison.opportunities.map(opp => `
+            <div class="opportunity-item">
+                <div class="gap-keyword">${opp.keyword}</div>
+                <div class="gap-stats">
+                    <span>Your density: ${opp.your_density}%</span>
+                    <span>Competitor density: ${opp.competitor_density}%</span>
+                </div>
+                <div class="gap-recommendation">${opp.recommendation}</div>
+            </div>
+        `).join('');
+    } else {
+        opportunitiesContent.innerHTML = '<p>No optimization opportunities found!</p>';
+    }
+
+    // Display advantages
+    const advantagesContent = document.getElementById('advantages-content');
+    if (comparison.advantages && comparison.advantages.length > 0) {
+        advantagesContent.innerHTML = comparison.advantages.map(adv => `
+            <div class="advantage-item">
+                <div class="gap-keyword">${adv.keyword}</div>
+                <div class="gap-stats">
+                    <span>Your density: ${adv.your_density}%</span>
+                    <span>Competitor density: ${adv.competitor_density}%</span>
+                </div>
+                <div class="gap-recommendation">${adv.note}</div>
+            </div>
+        `).join('');
+    } else {
+        advantagesContent.innerHTML = '<p>No clear advantages identified.</p>';
+    }
+}
+
+function showCompetitorError(message) {
+    competitorError.textContent = message;
+    competitorError.classList.remove('hidden');
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Keyword Density Checker initialized');
+    console.log('Keyword Density Checker Phase 2 initialized');
 });

@@ -291,8 +291,286 @@ class KeywordDensityAnalyzer:
 
         return recommendations
 
+    def analyze_meta_tags(self, metadata: Dict, keywords: List[str]) -> Dict:
+        """
+        Analyze keyword presence in meta tags and headings.
+
+        Args:
+            metadata: Dictionary with title, meta_description, headings, etc.
+            keywords: List of top keywords to check
+
+        Returns:
+            Dictionary with meta tag analysis
+        """
+        analysis = {
+            'title': {'present': [], 'missing': [], 'text': metadata.get('title', '')},
+            'meta_description': {'present': [], 'missing': [], 'text': metadata.get('meta_description', '')},
+            'h1': {'present': [], 'missing': [], 'count': len(metadata.get('h1', []))},
+            'h2': {'present': [], 'missing': [], 'count': len(metadata.get('h2', []))},
+            'h3': {'present': [], 'missing': [], 'count': len(metadata.get('h3', []))},
+            'url': {'present': [], 'missing': [], 'text': metadata.get('url', '')},
+            'recommendations': []
+        }
+
+        # Check top 5 keywords
+        top_keywords = keywords[:5] if len(keywords) >= 5 else keywords
+
+        for kw in top_keywords:
+            keyword = kw.lower()
+
+            # Check title
+            if keyword in metadata.get('title', '').lower():
+                analysis['title']['present'].append(keyword)
+            else:
+                analysis['title']['missing'].append(keyword)
+
+            # Check meta description
+            meta_desc = metadata.get('meta_description', '')
+            if isinstance(meta_desc, str) and keyword in meta_desc.lower():
+                analysis['meta_description']['present'].append(keyword)
+            else:
+                analysis['meta_description']['missing'].append(keyword)
+
+            # Check H1 tags
+            h1_texts = ' '.join(metadata.get('h1', [])).lower()
+            if keyword in h1_texts:
+                analysis['h1']['present'].append(keyword)
+            else:
+                analysis['h1']['missing'].append(keyword)
+
+            # Check H2 tags
+            h2_texts = ' '.join(metadata.get('h2', [])).lower()
+            if keyword in h2_texts:
+                analysis['h2']['present'].append(keyword)
+            else:
+                analysis['h2']['missing'].append(keyword)
+
+            # Check H3 tags
+            h3_texts = ' '.join(metadata.get('h3', [])).lower()
+            if keyword in h3_texts:
+                analysis['h3']['present'].append(keyword)
+
+            # Check URL
+            if keyword in metadata.get('url', '').lower():
+                analysis['url']['present'].append(keyword)
+            else:
+                analysis['url']['missing'].append(keyword)
+
+        # Generate meta recommendations
+        if not analysis['title']['text']:
+            analysis['recommendations'].append({
+                'type': 'critical',
+                'issue': 'Missing title tag',
+                'action': 'Add a descriptive title tag with primary keywords'
+            })
+        elif not analysis['title']['present']:
+            analysis['recommendations'].append({
+                'type': 'warning',
+                'issue': 'No keywords in title tag',
+                'action': 'Include primary keywords in title for better SEO'
+            })
+
+        if not analysis['meta_description']['text']:
+            analysis['recommendations'].append({
+                'type': 'warning',
+                'issue': 'Missing meta description',
+                'action': 'Add meta description with keywords (150-160 characters)'
+            })
+
+        if analysis['h1']['count'] == 0:
+            analysis['recommendations'].append({
+                'type': 'critical',
+                'issue': 'Missing H1 tag',
+                'action': 'Add an H1 heading with primary keywords'
+            })
+        elif analysis['h1']['count'] > 1:
+            analysis['recommendations'].append({
+                'type': 'warning',
+                'issue': f'Multiple H1 tags ({analysis["h1"]["count"]})',
+                'action': 'Use only one H1 tag per page for better SEO'
+            })
+
+        return analysis
+
+    def calculate_prominence_score(self, keyword: str, text: str, metadata: Dict) -> Dict:
+        """
+        Calculate keyword prominence score based on position weighting.
+
+        Position weights:
+        - Title Tag: 10x
+        - H1: 8x
+        - First 100 words: 7x
+        - H2/H3: 6x
+        - URL slug: 5x
+        - Meta Description: 4x
+        - Body content: 1x
+
+        Args:
+            keyword: The keyword to analyze
+            text: Main body text
+            metadata: Meta tags and headings
+
+        Returns:
+            Dictionary with prominence score and breakdown
+        """
+        keyword_lower = keyword.lower()
+        score = 0
+        breakdown = {}
+
+        # Title tag (10x)
+        title_count = metadata.get('title', '').lower().count(keyword_lower)
+        breakdown['title'] = {'count': title_count, 'weight': 10, 'score': title_count * 10}
+        score += title_count * 10
+
+        # H1 tags (8x)
+        h1_text = ' '.join(metadata.get('h1', [])).lower()
+        h1_count = h1_text.count(keyword_lower)
+        breakdown['h1'] = {'count': h1_count, 'weight': 8, 'score': h1_count * 8}
+        score += h1_count * 8
+
+        # First 100 words (7x)
+        words = text.split()[:100]
+        first_100 = ' '.join(words).lower()
+        first_100_count = first_100.count(keyword_lower)
+        breakdown['first_100_words'] = {'count': first_100_count, 'weight': 7, 'score': first_100_count * 7}
+        score += first_100_count * 7
+
+        # H2/H3 tags (6x)
+        h2_text = ' '.join(metadata.get('h2', [])).lower()
+        h3_text = ' '.join(metadata.get('h3', [])).lower()
+        h2_h3_count = h2_text.count(keyword_lower) + h3_text.count(keyword_lower)
+        breakdown['h2_h3'] = {'count': h2_h3_count, 'weight': 6, 'score': h2_h3_count * 6}
+        score += h2_h3_count * 6
+
+        # URL slug (5x)
+        url_count = metadata.get('url', '').lower().count(keyword_lower)
+        breakdown['url'] = {'count': url_count, 'weight': 5, 'score': url_count * 5}
+        score += url_count * 5
+
+        # Meta description (4x)
+        meta_desc = metadata.get('meta_description', '')
+        if isinstance(meta_desc, str):
+            meta_count = meta_desc.lower().count(keyword_lower)
+        else:
+            meta_count = 0
+        breakdown['meta_description'] = {'count': meta_count, 'weight': 4, 'score': meta_count * 4}
+        score += meta_count * 4
+
+        # Body content (1x) - excluding first 100 words
+        body_remainder = ' '.join(text.split()[100:]).lower()
+        body_count = body_remainder.count(keyword_lower)
+        breakdown['body'] = {'count': body_count, 'weight': 1, 'score': body_count * 1}
+        score += body_count * 1
+
+        return {
+            'keyword': keyword,
+            'total_score': score,
+            'breakdown': breakdown,
+            'rating': self._get_prominence_rating(score)
+        }
+
+    def _get_prominence_rating(self, score: int) -> str:
+        """Get prominence rating based on score."""
+        if score >= 50:
+            return 'Excellent'
+        elif score >= 30:
+            return 'Good'
+        elif score >= 15:
+            return 'Fair'
+        elif score >= 5:
+            return 'Poor'
+        else:
+            return 'Very Poor'
+
+    def compare_with_competitor(self, your_analysis: Dict, competitor_url: str) -> Dict:
+        """
+        Compare your content with a competitor's content.
+
+        Args:
+            your_analysis: Your content analysis results
+            competitor_url: Competitor URL to analyze
+
+        Returns:
+            Comparison results with gaps and recommendations
+        """
+        try:
+            # Analyze competitor
+            competitor_text, competitor_metadata = self.extract_from_url(competitor_url)
+            competitor_analysis = self.analyze(competitor_text, use_lemmatization=True, remove_stopwords=True)
+
+            # Compare metrics
+            comparison = {
+                'your_stats': {
+                    'total_words': your_analysis['total_words'],
+                    'unique_words': your_analysis['unique_words'],
+                    'top_keyword': your_analysis['single_words'][0] if your_analysis['single_words'] else None
+                },
+                'competitor_stats': {
+                    'total_words': competitor_analysis['total_words'],
+                    'unique_words': competitor_analysis['unique_words'],
+                    'top_keyword': competitor_analysis['single_words'][0] if competitor_analysis['single_words'] else None
+                },
+                'keyword_gaps': [],
+                'opportunities': [],
+                'advantages': []
+            }
+
+            # Find keyword gaps (keywords competitor has that you don't)
+            your_keywords = {item['term']: item for item in your_analysis['single_words'][:30]}
+            competitor_keywords = {item['term']: item for item in competitor_analysis['single_words'][:30]}
+
+            for term, data in competitor_keywords.items():
+                if term not in your_keywords and data['density'] > 1:
+                    comparison['keyword_gaps'].append({
+                        'keyword': term,
+                        'competitor_count': data['count'],
+                        'competitor_density': data['density'],
+                        'your_count': 0,
+                        'recommendation': f"Consider adding '{term}' - competitor uses it {data['count']} times"
+                    })
+
+            # Find opportunities (keywords you underuse compared to competitor)
+            for term in your_keywords:
+                if term in competitor_keywords:
+                    your_density = your_keywords[term]['density']
+                    comp_density = competitor_keywords[term]['density']
+
+                    if comp_density > your_density * 1.5 and comp_density <= 3:
+                        comparison['opportunities'].append({
+                            'keyword': term,
+                            'your_density': your_density,
+                            'competitor_density': comp_density,
+                            'recommendation': f"Increase usage of '{term}' to match competitor"
+                        })
+                    elif your_density > comp_density * 1.5:
+                        comparison['advantages'].append({
+                            'keyword': term,
+                            'your_density': your_density,
+                            'competitor_density': comp_density,
+                            'note': f"You use '{term}' more effectively than competitor"
+                        })
+
+            # Limit results
+            comparison['keyword_gaps'] = sorted(comparison['keyword_gaps'],
+                                              key=lambda x: x['competitor_density'],
+                                              reverse=True)[:10]
+            comparison['opportunities'] = sorted(comparison['opportunities'],
+                                                key=lambda x: x['competitor_density'],
+                                                reverse=True)[:10]
+            comparison['advantages'] = sorted(comparison['advantages'],
+                                             key=lambda x: x['your_density'],
+                                             reverse=True)[:10]
+
+            return comparison
+
+        except Exception as e:
+            return {
+                'error': f"Failed to analyze competitor: {str(e)}"
+            }
+
     def analyze(self, text: str, use_lemmatization: bool = True,
-               remove_stopwords: bool = True) -> Dict:
+               remove_stopwords: bool = True, metadata: Dict = None,
+               calculate_prominence: bool = False) -> Dict:
         """
         Perform comprehensive keyword density analysis.
 
@@ -300,6 +578,8 @@ class KeywordDensityAnalyzer:
             text: Text to analyze
             use_lemmatization: Whether to use lemmatization
             remove_stopwords: Whether to remove stopwords
+            metadata: Optional metadata for meta tag analysis
+            calculate_prominence: Whether to calculate prominence scores
 
         Returns:
             Dictionary with complete analysis results
@@ -340,6 +620,18 @@ class KeywordDensityAnalyzer:
         results['recommendations'] = self.generate_recommendations(
             results['single_words'], total_words
         )
+
+        # Phase 2: Meta tag analysis
+        if metadata:
+            top_keywords = [item['term'] for item in results['single_words'][:5]]
+            results['meta_analysis'] = self.analyze_meta_tags(metadata, top_keywords)
+
+        # Phase 2: Prominence scoring for top keywords
+        if calculate_prominence and metadata:
+            results['prominence_scores'] = []
+            for item in results['single_words'][:5]:
+                prominence = self.calculate_prominence_score(item['term'], text, metadata)
+                results['prominence_scores'].append(prominence)
 
         return results
 
@@ -402,8 +694,17 @@ def analyze_endpoint():
                 'error': 'Content too long. Maximum 500,000 characters allowed.'
             }), 400
 
-        # Perform analysis
-        results = analyzer.analyze(text, use_lemmatization, remove_stopwords)
+        # Phase 2: Check if advanced features are requested
+        calculate_prominence = data.get('calculate_prominence', source_type == 'url')
+
+        # Perform analysis with Phase 2 features
+        results = analyzer.analyze(
+            text,
+            use_lemmatization,
+            remove_stopwords,
+            metadata=metadata if metadata else None,
+            calculate_prominence=calculate_prominence
+        )
 
         if 'error' in results:
             return jsonify({'success': False, 'error': results['error']}), 400
@@ -492,6 +793,59 @@ def export_csv():
         return jsonify({
             'success': False,
             'error': f'Export failed: {str(e)}'
+        }), 500
+
+
+@app.route('/api/compare-competitor', methods=['POST'])
+def compare_competitor():
+    """
+    Compare your content with a competitor's content.
+
+    Accepts JSON with:
+        - your_content: Your text content or URL
+        - competitor_url: Competitor's URL to analyze
+        - source_type: 'url' or 'text' for your content
+
+    Returns:
+        JSON with comparison results
+    """
+    try:
+        data = request.json
+
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+
+        your_content = data.get('your_content', '')
+        competitor_url = data.get('competitor_url', '')
+        source_type = data.get('source_type', 'text')
+
+        if not your_content or not competitor_url:
+            return jsonify({
+                'success': False,
+                'error': 'Both your_content and competitor_url are required'
+            }), 400
+
+        # Analyze your content
+        if source_type == 'url':
+            your_text, your_metadata = analyzer.extract_from_url(your_content)
+        else:
+            your_text = your_content
+            your_metadata = {}
+
+        your_analysis = analyzer.analyze(your_text, use_lemmatization=True, remove_stopwords=True)
+
+        # Compare with competitor
+        comparison = analyzer.compare_with_competitor(your_analysis, competitor_url)
+
+        if 'error' in comparison:
+            return jsonify({'success': False, 'error': comparison['error']}), 400
+
+        return jsonify({'success': True, 'comparison': comparison})
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Comparison failed: {str(e)}'
         }), 500
 
 

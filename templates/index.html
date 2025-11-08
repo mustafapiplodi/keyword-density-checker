@@ -6,6 +6,7 @@
     <meta name="description" content="Free keyword density checker tool. Analyze content for optimal keyword usage, avoid stuffing, and improve SEO rankings. Try now!">
     <title>Keyword Density Checker | Free SEO Analysis Tool</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -121,6 +122,70 @@
 
                     <!-- Opportunities -->
                     <div id="opportunity-recommendations" class="recommendation-group"></div>
+                </div>
+            </section>
+
+            <!-- Phase 2: Visualizations -->
+            <section id="visualizations-section" class="card hidden">
+                <h2>Keyword Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="keyword-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- Phase 2: Meta Tag Analysis -->
+            <section id="meta-analysis-section" class="card hidden">
+                <h2>Meta Tag & Heading Analysis</h2>
+                <div id="meta-analysis-content"></div>
+            </section>
+
+            <!-- Phase 2: Prominence Scoring -->
+            <section id="prominence-section" class="card hidden">
+                <h2>Keyword Prominence Scores</h2>
+                <p class="help-text">Prominence score shows how strategically keywords are placed in important page elements.</p>
+                <div id="prominence-content"></div>
+            </section>
+
+            <!-- Phase 2: Competitor Comparison -->
+            <section id="competitor-section" class="card">
+                <h2>Competitor Comparison</h2>
+                <p class="help-text">Compare your content with a competitor to identify keyword gaps and opportunities.</p>
+
+                <div class="competitor-input-group">
+                    <input type="url" id="competitor-url" class="input-url" placeholder="https://competitor-url.com">
+                    <button id="compare-btn" class="btn btn-secondary">Compare</button>
+                </div>
+
+                <div id="competitor-loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Analyzing competitor...</p>
+                </div>
+
+                <div id="competitor-error" class="error-message hidden"></div>
+
+                <div id="competitor-results" class="hidden">
+                    <h3>Comparison Results</h3>
+
+                    <div class="comparison-stats">
+                        <div class="stat-group">
+                            <h4>Your Content</h4>
+                            <div id="your-stats"></div>
+                        </div>
+                        <div class="stat-group">
+                            <h4>Competitor Content</h4>
+                            <div id="competitor-stats"></div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-tabs">
+                        <button class="comp-tab-btn active" data-tab="gaps">Keyword Gaps</button>
+                        <button class="comp-tab-btn" data-tab="opportunities">Opportunities</button>
+                        <button class="comp-tab-btn" data-tab="advantages">Your Advantages</button>
+                    </div>
+
+                    <div id="gaps-content" class="comp-tab-content active"></div>
+                    <div id="opportunities-content" class="comp-tab-content"></div>
+                    <div id="advantages-content" class="comp-tab-content"></div>
                 </div>
             </section>
 
