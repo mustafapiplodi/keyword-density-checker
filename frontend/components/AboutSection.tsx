@@ -1,0 +1,248 @@
+"use client"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  BarChart3,
+  FileSearch,
+  Target,
+  TrendingUp,
+  Zap,
+  Globe,
+  PieChart,
+  FileText,
+  Search,
+  Users,
+  BookOpen,
+  CheckCircle2,
+  Sparkles,
+  ArrowRight
+} from "lucide-react"
+
+export function AboutSection() {
+  const features = [
+    {
+      icon: <FileSearch className="h-6 w-6" />,
+      title: "Advanced Keyword Density Analysis",
+      description: "Analyze keyword frequency and density with precision. Our tool calculates 1-gram, 2-gram, 3-gram, and 4-gram keyword density to help you optimize content for search engines."
+    },
+    {
+      icon: <Target className="h-6 w-6" />,
+      title: "Target Keyword Optimization",
+      description: "Get a comprehensive SEO score (0-100) for your target keyword. Our algorithm analyzes keyword placement in titles, headings, meta descriptions, and content to provide actionable optimization recommendations."
+    },
+    {
+      icon: <TrendingUp className="h-6 w-6" />,
+      title: "Competitor Content Analysis",
+      description: "Compare your content with competitors to identify keyword gaps and opportunities. Discover which keywords your competitors are ranking for and optimize your content strategy accordingly."
+    },
+    {
+      icon: <BarChart3 className="h-6 w-6" />,
+      title: "Batch Competitor Analysis",
+      description: "Analyze multiple competitor URLs simultaneously. Get TF-IDF scores, keyword gaps, and content insights from up to 10 competitors at once to gain a competitive edge."
+    },
+    {
+      icon: <BookOpen className="h-6 w-6" />,
+      title: "Readability Score Analysis",
+      description: "Measure content readability with Flesch Reading Ease, Flesch-Kincaid Grade Level, Gunning Fog Index, and SMOG Index. Ensure your content is accessible to your target audience."
+    },
+    {
+      icon: <Globe className="h-6 w-6" />,
+      title: "Meta Tag & SEO Analysis",
+      description: "Analyze title tags, meta descriptions, H1-H6 headings, and URL structure. Get instant feedback on keyword presence in critical SEO elements with character count recommendations."
+    },
+    {
+      icon: <PieChart className="h-6 w-6" />,
+      title: "Interactive Data Visualizations",
+      description: "Visualize keyword density with bar charts, line graphs, pie charts, word clouds, and heatmaps. Export charts as PNG images for reports and presentations."
+    },
+    {
+      icon: <Zap className="h-6 w-6" />,
+      title: "Content Structure Analysis",
+      description: "Analyze paragraph length, sentence variety, heading hierarchy, internal/external links, and image alt text coverage. Improve content structure for better user experience and SEO."
+    },
+    {
+      icon: <Search className="h-6 w-6" />,
+      title: "Keyword Clustering",
+      description: "Discover related keywords and content themes with AI-powered keyword clustering. Group semantically similar keywords to identify content topics and improve topical relevance."
+    },
+    {
+      icon: <FileText className="h-6 w-6" />,
+      title: "PDF & CSV Export",
+      description: "Export comprehensive SEO reports as PDF with executive summaries, charts, and recommendations. Download raw data as CSV for further analysis in spreadsheet applications."
+    },
+    {
+      icon: <Users className="h-6 w-6" />,
+      title: "URL & Text Analysis",
+      description: "Analyze content from any URL or paste text directly. Our tool fetches webpage content, extracts text, and provides comprehensive SEO analysis for blogs, articles, and landing pages."
+    },
+    {
+      icon: <CheckCircle2 className="h-6 w-6" />,
+      title: "Real-time SEO Recommendations",
+      description: "Get instant SEO recommendations based on industry best practices. Identify over-optimized keywords, keyword stuffing, and opportunities to improve content quality and search rankings."
+    }
+  ]
+
+  const faqs = [
+    {
+      question: "What is keyword density and why does it matter for SEO?",
+      answer: "Keyword density is the percentage of times a keyword appears in your content compared to the total word count. For example, if a keyword appears 10 times in a 1,000-word article, the keyword density is 1%. Optimal keyword density (typically 0.5-2.5%) helps search engines understand your content topic without triggering keyword stuffing penalties. Our keyword density checker analyzes your content to ensure you're using keywords naturally and effectively for better search engine rankings."
+    },
+    {
+      question: "How does the keyword density checker calculate density?",
+      answer: "Our keyword density analyzer uses the formula: (Keyword Count ÷ Total Words) × 100. We analyze single words (1-grams), two-word phrases (2-grams), three-word phrases (3-grams), and four-word phrases (4-grams) to give you comprehensive insights. The tool uses advanced NLP (Natural Language Processing) with lemmatization to group word variations (e.g., 'running' and 'run') and removes common stopwords for more accurate results."
+    },
+    {
+      question: "What is the ideal keyword density for SEO in 2024?",
+      answer: "The ideal keyword density for SEO is between 0.5% and 2.5%. Content with keyword density below 0.5% may not rank well because search engines can't determine the main topic. Keyword density above 3.5% is considered keyword stuffing and can result in search engine penalties. Our tool provides color-coded status indicators: Optimal (0.5-2.5%), Caution (2.5-3.5%), Warning (3.5-5%), and Critical (>5%) to help you maintain the perfect balance for modern SEO best practices."
+    },
+    {
+      question: "Can I analyze competitor content with this keyword density tool?",
+      answer: "Yes! Our keyword density checker includes powerful competitor analysis features. You can compare your content with a single competitor to identify keyword gaps, or use the batch analysis feature to analyze up to 10 competitor URLs simultaneously. The tool shows which keywords competitors are using, their keyword density, TF-IDF scores, and provides recommendations on which keywords to add to your content to improve competitiveness and search rankings."
+    },
+    {
+      question: "What are TF-IDF scores and how do they help with SEO?",
+      answer: "TF-IDF (Term Frequency-Inverse Document Frequency) is an advanced metric that identifies unique and valuable keywords in your content compared to competitors. Unlike simple keyword density, TF-IDF scores help you find keywords that differentiate your content. High TF-IDF scores indicate unique terms that can help you rank for specific search queries. Our batch competitor analysis calculates TF-IDF scores automatically to show which keywords give you a competitive advantage."
+    },
+    {
+      question: "How does the readability score affect SEO?",
+      answer: "Readability scores (Flesch Reading Ease, Flesch-Kincaid Grade Level, Gunning Fog Index, and SMOG Index) measure how easy your content is to read and understand. Search engines like Google favor content that provides good user experience, and readability is a key factor. Content that's too difficult to read leads to high bounce rates and low engagement, negatively impacting SEO. Our readability analyzer helps you create content that's both search-engine friendly and user-friendly, improving dwell time and search rankings."
+    },
+    {
+      question: "What is the Target Keyword Optimization score?",
+      answer: "The Target Keyword Optimization score (0-100) evaluates how well your content is optimized for a specific keyword. It analyzes keyword placement in: title tags (20 points), H1 headings (15 points), first 100 words (15 points), meta descriptions (10 points), URL slug (10 points), and overall density (30 points). Scores are graded A-F, with actionable recommendations to improve your target keyword optimization for better search engine rankings and organic traffic."
+    },
+    {
+      question: "Can I export my keyword analysis results?",
+      answer: "Yes! Our SEO keyword density checker offers two export formats: PDF reports and CSV data files. PDF exports include an executive summary, keyword density tables, visualizations, readability scores, SEO recommendations, and competitor analysis results—perfect for client reports and presentations. CSV exports provide raw data including all keywords, counts, densities, and metrics for further analysis in Excel, Google Sheets, or other data analysis tools."
+    },
+    {
+      question: "Does the tool analyze meta tags and headings for SEO?",
+      answer: "Absolutely! Our comprehensive SEO analyzer examines all critical meta elements including title tags (character count and keyword presence), meta descriptions (length and keyword optimization), H1-H6 heading hierarchy, URL structure, and image alt text coverage. The tool identifies missing keywords in meta tags, improper heading structure, and provides specific recommendations to improve on-page SEO factors that directly impact search engine rankings."
+    },
+    {
+      question: "Is this keyword density checker free to use?",
+      answer: "Yes, our SEO keyword density analyzer is completely free to use. You can analyze unlimited URLs and text content, compare with competitors, get readability scores, export reports as PDF and CSV, and access all advanced features including TF-IDF analysis, keyword clustering, and content structure analysis without any cost or registration required. We built this tool to help content creators, SEO professionals, bloggers, and digital marketers improve their content quality and search engine rankings."
+    },
+    {
+      question: "What makes this different from other keyword density checkers?",
+      answer: "Our keyword density tool goes beyond basic keyword counting. It includes: (1) Advanced NLP with lemmatization for accurate analysis, (2) Multi-gram analysis (1-4 word phrases), (3) Competitor comparison and batch analysis, (4) TF-IDF scoring for content uniqueness, (5) Readability metrics (4 different indices), (6) Target keyword optimization scoring, (7) Keyword clustering for topic discovery, (8) Interactive visualizations (charts, word clouds, heatmaps), (9) Content structure analysis (paragraphs, sentences, links, images), (10) Professional PDF reports with executive summaries. It's an all-in-one SEO content optimization platform, not just a simple density calculator."
+    },
+    {
+      question: "How often should I check keyword density when writing SEO content?",
+      answer: "We recommend checking keyword density multiple times during content creation: (1) During outline creation to plan keyword placement, (2) After writing the first draft to identify over/under-optimization, (3) After revisions to ensure optimal density, and (4) Before publishing to verify all SEO elements are optimized. For existing content, run keyword density analysis quarterly or whenever updating content to ensure it maintains competitive keyword usage and follows current SEO best practices. Regular analysis helps prevent keyword stuffing and ensures your content stays optimized for search engines."
+    }
+  ]
+
+  return (
+    <section className="space-y-12 py-12" id="about">
+      {/* About Section */}
+      <div className="space-y-4">
+        <h2 className="text-3xl font-bold tracking-tight">
+          About Our Free SEO Keyword Density Checker & Content Analyzer
+        </h2>
+        <div className="prose prose-gray dark:prose-invert max-w-none">
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Our <strong>keyword density checker</strong> is a comprehensive, free SEO tool designed to help content creators,
+            digital marketers, and SEO professionals optimize their content for search engines. Unlike basic keyword density
+            calculators, our advanced analyzer provides <strong>keyword frequency analysis</strong>, <strong>competitor content comparison</strong>,
+            <strong>readability scoring</strong>, and <strong>TF-IDF analysis</strong> all in one powerful platform.
+          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Whether you're writing blog posts, creating landing pages, or optimizing product descriptions, our <strong>SEO keyword
+            density tool</strong> helps you find the perfect keyword balance. Analyze single keywords and multi-word phrases (2-grams,
+            3-grams, 4-grams), compare your content with up to 10 competitors, and get actionable recommendations to improve
+            your search engine rankings. With features like <strong>keyword clustering</strong>, <strong>meta tag analysis</strong>, and
+            <strong>content structure evaluation</strong>, you'll have everything you need to create SEO-optimized content that ranks
+            higher on Google and drives organic traffic.
+          </p>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight mb-2">
+            Powerful Features for SEO Content Optimization
+          </h2>
+          <p className="text-muted-foreground">
+            All the tools you need to create perfectly optimized content that ranks on search engines
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, index) => (
+            <Card key={index} className="border-2 hover:border-primary transition-colors">
+              <CardHeader>
+                <div className="flex items-start gap-4">
+                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                    {feature.icon}
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-lg leading-tight">
+                      {feature.title}
+                    </CardTitle>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <CardDescription className="text-sm leading-relaxed">
+                  {feature.description}
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* FAQ Section */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight mb-2">
+            Frequently Asked Questions About Keyword Density & SEO
+          </h2>
+          <p className="text-muted-foreground">
+            Everything you need to know about keyword density analysis and SEO content optimization
+          </p>
+        </div>
+
+        <Card>
+          <CardContent className="pt-6">
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-left">
+                    <span className="font-semibold">{faq.question}</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* SEO-Optimized Footer Content */}
+      <div className="border-t pt-8 space-y-4">
+        <h3 className="text-xl font-semibold">
+          Start Optimizing Your Content with Our Free Keyword Density Checker
+        </h3>
+        <p className="text-muted-foreground leading-relaxed">
+          Our <strong>keyword density analyzer</strong> is trusted by SEO professionals, content marketers, and bloggers
+          worldwide to create search-engine-optimized content that ranks higher on Google. The tool analyzes keyword
+          frequency, provides competitor insights, calculates readability scores, and offers actionable SEO recommendations—all
+          completely free. Start analyzing your content today and discover how proper keyword optimization can improve your
+          search engine rankings, increase organic traffic, and help you outrank competitors in search results.
+        </p>
+      </div>
+    </section>
+  )
+}

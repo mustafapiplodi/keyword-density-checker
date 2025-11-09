@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Free keyword density checker tool. Analyze content for optimal keyword usage, avoid stuffing, and improve SEO rankings. Try now!">
+    <title>Keyword Density Checker | Free SEO Analysis Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">🔍 Keyword Density Checker</h1>
+            <p class="tagline">Free SEO Content Analysis Tool</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Input Section -->
+        <section class="input-section card">
+            <h2>Analyze Your Content</h2>
+
+            <!-- Source Type Tabs -->
+            <div class="tabs">
+                <button class="tab-button active" data-tab="text">Text Input</button>
+                <button class="tab-button" data-tab="url">URL Input</button>
+            </div>
+
+            <!-- Text Input Tab -->
+            <div id="text-tab" class="tab-content active">
+                <textarea
+                    id="text-input"
+                    class="input-textarea"
+                    placeholder="Paste your content here (minimum 50 characters)..."
+                    rows="10"></textarea>
+            </div>
+
+            <!-- URL Input Tab -->
+            <div id="url-tab" class="tab-content">
+                <input
+                    type="url"
+                    id="url-input"
+                    class="input-url"
+                    placeholder="https://example.com/your-article">
+                <p class="help-text">Enter a URL to analyze published content</p>
+            </div>
+
+            <!-- Options -->
+            <div class="options">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="remove-stopwords" checked>
+                    <span>Remove stop words</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="use-lemmatization" checked>
+                    <span>Use lemmatization</span>
+                </label>
+            </div>
+
+            <!-- Analyze Button -->
+            <button id="analyze-btn" class="btn btn-primary">Analyze Content</button>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Analyzing content...</p>
+            </div>
+
+            <!-- Error Display -->
+            <div id="error-message" class="error-message hidden"></div>
+        </section>
+
+        <!-- Results Section -->
+        <div id="results-container" class="hidden">
+            <!-- Summary Dashboard -->
+            <section class="summary-section card">
+                <h2>Summary Dashboard</h2>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-value" id="total-words">0</div>
+                        <div class="summary-label">Total Words</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value" id="unique-words">0</div>
+                        <div class="summary-label">Unique Keywords</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value" id="top-keyword">-</div>
+                        <div class="summary-label">Top Keyword</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value" id="top-density">0%</div>
+                        <div class="summary-label">Top Density</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recommendations Panel -->
+            <section class="recommendations-section card">
+                <h2>Recommendations</h2>
+                <div class="recommendation-summary">
+                    <span class="rec-badge critical">
+                        <span id="critical-count">0</span> Critical Issues
+                    </span>
+                    <span class="rec-badge warning">
+                        <span id="warnings-count">0</span> Warnings
+                    </span>
+                    <span class="rec-badge optimal">
+                        <span id="opportunities-count">0</span> Optimal
+                    </span>
+                </div>
+
+                <div id="recommendations-details" class="recommendations-details">
+                    <!-- Critical Issues -->
+                    <div id="critical-recommendations" class="recommendation-group"></div>
+
+                    <!-- Warnings -->
+                    <div id="warning-recommendations" class="recommendation-group"></div>
+
+                    <!-- Opportunities -->
+                    <div id="opportunity-recommendations" class="recommendation-group"></div>
+                </div>
+            </section>
+
+            <!-- Phase 2: Visualizations -->
+            <section id="visualizations-section" class="card hidden">
+                <h2>Keyword Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="keyword-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- Phase 2: Meta Tag Analysis -->
+            <section id="meta-analysis-section" class="card hidden">
+                <h2>Meta Tag & Heading Analysis</h2>
+                <div id="meta-analysis-content"></div>
+            </section>
+
+            <!-- Phase 2: Prominence Scoring -->
+            <section id="prominence-section" class="card hidden">
+                <h2>Keyword Prominence Scores</h2>
+                <p class="help-text">Prominence score shows how strategically keywords are placed in important page elements.</p>
+                <div id="prominence-content"></div>
+            </section>
+
+            <!-- Phase 2: Competitor Comparison -->
+            <section id="competitor-section" class="card">
+                <h2>Competitor Comparison</h2>
+                <p class="help-text">Compare your content with a competitor to identify keyword gaps and opportunities.</p>
+
+                <div class="competitor-input-group">
+                    <input type="url" id="competitor-url" class="input-url" placeholder="https://competitor-url.com">
+                    <button id="compare-btn" class="btn btn-secondary">Compare</button>
+                </div>
+
+                <div id="competitor-loading" class="loading hidden">
+                    <div class="spinner"></div>
+                    <p>Analyzing competitor...</p>
+                </div>
+
+                <div id="competitor-error" class="error-message hidden"></div>
+
+                <div id="competitor-results" class="hidden">
+                    <h3>Comparison Results</h3>
+
+                    <div class="comparison-stats">
+                        <div class="stat-group">
+                            <h4>Your Content</h4>
+                            <div id="your-stats"></div>
+                        </div>
+                        <div class="stat-group">
+                            <h4>Competitor Content</h4>
+                            <div id="competitor-stats"></div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-tabs">
+                        <button class="comp-tab-btn active" data-tab="gaps">Keyword Gaps</button>
+                        <button class="comp-tab-btn" data-tab="opportunities">Opportunities</button>
+                        <button class="comp-tab-btn" data-tab="advantages">Your Advantages</button>
+                    </div>
+
+                    <div id="gaps-content" class="comp-tab-content active"></div>
+                    <div id="opportunities-content" class="comp-tab-content"></div>
+                    <div id="advantages-content" class="comp-tab-content"></div>
+                </div>
+            </section>
+
+            <!-- Results Tables -->
+            <section class="results-section card">
+                <div class="results-header">
+                    <h2>Keyword Analysis Results</h2>
+                    <button id="export-csv-btn" class="btn btn-secondary">Export CSV</button>
+                </div>
+
+                <!-- Phrase Length Tabs -->
+                <div class="tabs">
+                    <button class="result-tab-button active" data-tab="1-word">1-Word Keywords</button>
+                    <button class="result-tab-button" data-tab="2-word">2-Word Phrases</button>
+                    <button class="result-tab-button" data-tab="3-word">3-Word Phrases</button>
+                    <button class="result-tab-button" data-tab="4-word">4-Word Phrases</button>
+                </div>
+
+                <!-- Results Tables -->
+                <div id="1-word-results" class="result-tab-content active">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Keyword</th>
+                                <th>Count</th>
+                                <th>Density %</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="1-word-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div id="2-word-results" class="result-tab-content">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Phrase</th>
+                                <th>Count</th>
+                                <th>Density %</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="2-word-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div id="3-word-results" class="result-tab-content">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Phrase</th>
+                                <th>Count</th>
+                                <th>Density %</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="3-word-tbody"></tbody>
+                    </table>
+                </div>
+
+                <div id="4-word-results" class="result-tab-content">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Phrase</th>
+                                <th>Count</th>
+                                <th>Density %</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="4-word-tbody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Keyword Density Checker. Built for SEO Content Optimization.</p>
+            <p class="footer-note">Ideal keyword density: 0.5-2.5% | Avoid over-optimization (&gt;3%)</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
