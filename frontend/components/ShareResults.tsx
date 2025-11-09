@@ -100,7 +100,7 @@ export function ShareResults({ results }: ShareResultsProps) {
           </div>
           <div className="flex gap-2">
             <CopyButton text={summary} label="Copy Summary" className="flex-1" />
-            {navigator.share && (
+            {typeof window !== 'undefined' && 'share' in navigator && (
               <Button variant="outline" onClick={handleNativeShare} className="flex-1">
                 <Share2 className="h-4 w-4 mr-2" />
                 Share

@@ -222,6 +222,14 @@ export interface ComparisonResults {
     competitor_density: number
     note: string
   }>
+  comparison_data?: Array<{
+    keyword: string
+    your_density: number
+    your_count: number
+    competitor_density: number
+    competitor_count: number
+    difference: number
+  }>
 }
 
 export interface TFIDFScore {
