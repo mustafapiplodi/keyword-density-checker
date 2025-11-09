@@ -174,7 +174,7 @@ export function CompetitorComparison({
                 <div className="flex flex-wrap gap-2">
                   {results.opportunities.slice(0, 20).map((kw, idx) => (
                     <Badge key={idx} variant="caution">
-                      {kw}
+                      {kw.keyword}
                     </Badge>
                   ))}
                 </div>
@@ -187,7 +187,7 @@ export function CompetitorComparison({
                 <div className="flex flex-wrap gap-2">
                   {results.your_strengths.slice(0, 20).map((kw, idx) => (
                     <Badge key={idx} variant="optimal">
-                      {kw}
+                      {kw.keyword}
                     </Badge>
                   ))}
                 </div>
