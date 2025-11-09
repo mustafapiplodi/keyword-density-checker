@@ -1,6 +1,6 @@
 flask==3.0.0
 flask-cors==4.0.0
-spacy==3.7.2
+spacy==3.7.6
 beautifulsoup4==4.12.2
 lxml==4.9.2
 trafilatura==1.6.3
@@ -8,5 +8,3 @@ requests==2.31.0
 gunicorn==21.2.0
 reportlab==4.0.7
 matplotlib==3.8.2
-numpy==1.26.4
-blis<0.8.0,>=0.7.8
