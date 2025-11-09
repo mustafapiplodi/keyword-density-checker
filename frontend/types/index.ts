@@ -216,6 +216,12 @@ export interface ComparisonResults {
     competitor_density: number
     note: string
   }>
+  your_strengths?: Array<{
+    keyword: string
+    your_density: number
+    competitor_density: number
+    note: string
+  }>
 }
 
 export interface TFIDFScore {
