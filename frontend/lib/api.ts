@@ -5,6 +5,9 @@ import type {
   BatchCompetitorResults
 } from "@/types"
 
+// Re-export types for convenience
+export type { AnalysisResults, ComparisonResults, TFIDFResults, BatchCompetitorResults }
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api"
 
 export interface AnalyzeRequest {
