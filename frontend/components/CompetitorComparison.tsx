@@ -161,7 +161,7 @@ export function CompetitorComparison({
                 <div className="flex flex-wrap gap-2">
                   {results.keyword_gaps.slice(0, 20).map((kw, idx) => (
                     <Badge key={idx} variant="warning">
-                      {kw}
+                      {kw.keyword}
                     </Badge>
                   ))}
                 </div>
