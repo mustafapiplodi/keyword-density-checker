@@ -15,6 +15,7 @@ const tourSteps: Step[] = [
       </div>
     ),
     placement: "center",
+    disableBeacon: true,
   },
   {
     target: '[data-tour="input-tabs"]',
@@ -25,6 +26,7 @@ const tourSteps: Step[] = [
       </div>
     ),
     placement: "bottom",
+    disableBeacon: true,
   },
   {
     target: '[data-tour="target-keyword"]',
@@ -35,6 +37,7 @@ const tourSteps: Step[] = [
       </div>
     ),
     placement: "bottom",
+    disableBeacon: true,
   },
   {
     target: '[data-tour="clustering-toggle"]',
@@ -45,6 +48,7 @@ const tourSteps: Step[] = [
       </div>
     ),
     placement: "top",
+    disableBeacon: true,
   },
   {
     target: '[data-tour="analyze-button"]',
@@ -55,6 +59,7 @@ const tourSteps: Step[] = [
       </div>
     ),
     placement: "top",
+    disableBeacon: true,
   },
   {
     target: "body",
@@ -74,6 +79,7 @@ const tourSteps: Step[] = [
       </div>
     ),
     placement: "center",
+    disableBeacon: true,
   },
   {
     target: "body",
@@ -88,6 +94,7 @@ const tourSteps: Step[] = [
       </div>
     ),
     placement: "center",
+    disableBeacon: true,
   },
   {
     target: "body",
@@ -99,6 +106,7 @@ const tourSteps: Step[] = [
       </div>
     ),
     placement: "center",
+    disableBeacon: true,
   },
 ]
 
@@ -169,11 +177,14 @@ export function OnboardingTour() {
         showProgress
         showSkipButton
         callback={handleJoyrideCallback}
-        scrollToFirstStep
+        scrollToFirstStep={true}
         disableScrolling={false}
-        disableScrollParentFix={true}
-        scrollOffset={200}
-        spotlightPadding={10}
+        scrollOffset={150}
+        spotlightPadding={20}
+        disableOverlayClose={true}
+        floaterProps={{
+          disableAnimation: false,
+        }}
         styles={{
           options: {
             primaryColor: "#3b82f6",
