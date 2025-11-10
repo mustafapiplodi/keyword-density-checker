@@ -49,17 +49,6 @@ export default function Home() {
   const [batchError, setBatchError] = useState<string | undefined>()
   const [lastAnalyzedUrl, setLastAnalyzedUrl] = useState<string | undefined>()
   const [lastAnalyzedText, setLastAnalyzedText] = useState<string | undefined>()
-  const [isFirstVisit, setIsFirstVisit] = useState(true)
-
-  useEffect(() => {
-    // Check if user has visited before
-    const hasVisited = localStorage.getItem('hasVisitedBefore')
-    if (hasVisited) {
-      setIsFirstVisit(false)
-    } else {
-      localStorage.setItem('hasVisitedBefore', 'true')
-    }
-  }, [])
 
   const handleAnalyze = async (data: AnalyzeRequest) => {
     setIsAnalyzing(true)
@@ -393,8 +382,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* About Section - Only visible on first visit and when no results */}
-      {isFirstVisit && !results && (
+      {/* About Section - Only visible when no results are displayed */}
+      {!results && !isAnalyzing && (
         <AboutSection />
       )}
     </div>
