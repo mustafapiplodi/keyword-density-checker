@@ -169,6 +169,11 @@ export function OnboardingTour() {
         showProgress
         showSkipButton
         callback={handleJoyrideCallback}
+        scrollToFirstStep
+        disableScrolling={false}
+        disableScrollParentFix={true}
+        scrollOffset={200}
+        spotlightPadding={10}
         styles={{
           options: {
             primaryColor: "#3b82f6",
