@@ -169,7 +169,7 @@ export function AboutSection() {
               className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-muted/50 hover:border-primary/50"
             >
               <CardHeader className="pb-3">
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl text-primary group-hover:scale-110 transition-transform">
                     {feature.icon}
                   </div>
