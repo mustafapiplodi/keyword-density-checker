@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Trash2, Plus, AlertCircle, TrendingUp, TrendingDown, Star } from "lucide-react"
+import { Trash2, Plus, AlertCircle, TrendingUp, TrendingDown, Star, Info } from "lucide-react"
+import { CompetitorProgress } from "@/components/CompetitorProgress"
 import type { BatchCompetitorResults } from "@/types"
 import { TFIDFDisplay } from "./TFIDFDisplay"
 
@@ -29,6 +30,9 @@ export function BatchCompetitorAnalysis({
   results
 }: BatchCompetitorAnalysisProps) {
   const [competitorUrls, setCompetitorUrls] = useState<string[]>(['', ''])
+  const [localError, setLocalError] = useState<string>("")
+
+  const hasYourContent = !!(yourUrl || yourText)
 
   const addUrlField = () => {
     if (competitorUrls.length < 20) {
@@ -50,10 +54,20 @@ export function BatchCompetitorAnalysis({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const validUrls = competitorUrls.filter(url => url.trim() !== '')
-    if (validUrls.length >= 2) {
-      onAnalyze(validUrls)
+    setLocalError("")
+
+    // Validate that user has analyzed their content first
+    if (!yourUrl && !yourText) {
+      setLocalError("Please analyze your content first before comparing with competitors")
+      return
     }
+
+    const validUrls = competitorUrls.filter(url => url.trim() !== '')
+    if (validUrls.length < 2) {
+      setLocalError("Please enter at least 2 competitor URLs")
+      return
+    }
+    onAnalyze(validUrls)
   }
 
   return (
@@ -66,6 +80,15 @@ export function BatchCompetitorAnalysis({
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {!hasYourContent && (
+            <Alert className="mb-4">
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Please analyze your content first using the main analysis form above. Then you can compare it with multiple competitors.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-3">
               <Label>Competitor URLs ({competitorUrls.filter(u => u.trim()).length}/20)</Label>
@@ -77,13 +100,14 @@ export function BatchCompetitorAnalysis({
                     value={url}
                     onChange={(e) => updateUrl(index, e.target.value)}
                     className="flex-1"
+                    disabled={!hasYourContent}
                   />
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     onClick={() => removeUrlField(index)}
-                    disabled={competitorUrls.length <= 1}
+                    disabled={competitorUrls.length <= 1 || !hasYourContent}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -96,6 +120,7 @@ export function BatchCompetitorAnalysis({
                   variant="outline"
                   onClick={addUrlField}
                   className="w-full"
+                  disabled={!hasYourContent}
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Add Another Competitor URL
@@ -103,10 +128,10 @@ export function BatchCompetitorAnalysis({
               )}
             </div>
 
-            {error && (
+            {(error || localError) && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>{error || localError}</AlertDescription>
               </Alert>
             )}
 
@@ -114,11 +139,13 @@ export function BatchCompetitorAnalysis({
               type="submit"
               className="w-full"
               size="lg"
-              disabled={isLoading || competitorUrls.filter(u => u.trim()).length < 2}
+              disabled={isLoading || competitorUrls.filter(u => u.trim()).length < 2 || !hasYourContent}
             >
               {isLoading ? "Analyzing Competitors..." : "Analyze All Competitors"}
             </Button>
           </form>
+
+          {isLoading && <CompetitorProgress isLoading={isLoading} type="batch" />}
         </CardContent>
       </Card>
 

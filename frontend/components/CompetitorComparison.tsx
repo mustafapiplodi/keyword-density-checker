@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, TrendingUp, TrendingDown, Minus } from "lucide-react"
+import { AlertCircle, TrendingUp, TrendingDown, Minus, Info } from "lucide-react"
+import { CompetitorProgress } from "@/components/CompetitorProgress"
 import type { ComparisonResults, CompareRequest } from "@/lib/api"
 
 interface CompetitorComparisonProps {
@@ -28,9 +29,20 @@ export function CompetitorComparison({
   results
 }: CompetitorComparisonProps) {
   const [competitorUrl, setCompetitorUrl] = useState("")
+  const [localError, setLocalError] = useState<string>("")
+
+  const hasYourContent = !!(yourUrl || yourText)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setLocalError("")
+
+    // Validate that user has analyzed their content first
+    if (!yourUrl && !yourText) {
+      setLocalError("Please analyze your content first before comparing with a competitor")
+      return
+    }
+
     const data: CompareRequest = {
       competitor_url: competitorUrl,
       n_grams: [1, 2, 3],
@@ -107,6 +119,15 @@ export function CompetitorComparison({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {!hasYourContent && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Please analyze your content first using the main analysis form above. Then you can compare it with a competitor.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="competitor-url">Competitor URL</Label>
@@ -117,20 +138,23 @@ export function CompetitorComparison({
               value={competitorUrl}
               onChange={(e) => setCompetitorUrl(e.target.value)}
               required
+              disabled={!hasYourContent}
             />
           </div>
 
-          {error && (
+          {(error || localError) && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{error || localError}</AlertDescription>
             </Alert>
           )}
 
-          <Button type="submit" disabled={isLoading || !competitorUrl}>
+          <Button type="submit" disabled={isLoading || !competitorUrl || !hasYourContent}>
             {isLoading ? "Comparing..." : "Compare with Competitor"}
           </Button>
         </form>
+
+        {isLoading && <CompetitorProgress isLoading={isLoading} type="single" />}
 
         {results && (
           <div className="space-y-6 pt-4 border-t">
