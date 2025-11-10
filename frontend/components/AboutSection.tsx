@@ -64,8 +64,8 @@ export function AboutSection() {
     },
     {
       icon: <FileText className="h-6 w-6" />,
-      title: "PDF & CSV Export",
-      description: "Export comprehensive SEO reports as PDF with executive summaries, charts, and recommendations. Download raw data as CSV for further analysis in spreadsheet applications."
+      title: "PDF Export",
+      description: "Export comprehensive SEO reports as PDF with executive summaries, charts, and actionable recommendations. Perfect for client reports, presentations, and documentation."
     },
     {
       icon: <Users className="h-6 w-6" />,
@@ -102,7 +102,7 @@ export function AboutSection() {
     },
     {
       question: "Can I export my keyword analysis results?",
-      answer: "Yes! Our SEO keyword density checker offers two export formats: PDF reports and CSV data files. PDF exports include an executive summary, keyword density tables, visualizations, readability scores, SEO recommendations, and competitor analysis results—perfect for client reports and presentations. CSV exports provide raw data including all keywords, counts, densities, and metrics for further analysis in Excel, Google Sheets, or other data analysis tools."
+      answer: "Yes! Our SEO keyword density checker offers professional PDF export functionality. PDF exports include an executive summary, keyword density tables, interactive visualizations, readability scores, SEO recommendations, and detailed analysis results—perfect for client reports, presentations, and documentation. All reports are branded with professional formatting and comprehensive insights."
     },
     {
       question: "Does the tool analyze meta tags and headings for SEO?",
@@ -110,7 +110,7 @@ export function AboutSection() {
     },
     {
       question: "Is this keyword density checker free to use?",
-      answer: "Yes, our SEO keyword density analyzer is completely free to use. You can analyze unlimited URLs and text content, compare with competitors, get readability scores, export reports as PDF and CSV, and access all advanced features including TF-IDF analysis, keyword clustering, and content structure analysis without any cost or registration required. We built this tool to help content creators, SEO professionals, bloggers, and digital marketers improve their content quality and search engine rankings."
+      answer: "Yes, our SEO keyword density analyzer is completely free to use. You can analyze unlimited URLs and text content, get readability scores, export professional PDF reports, and access all advanced features including keyword clustering, target keyword optimization, and content structure analysis without any cost or registration required. We built this tool to help content creators, SEO professionals, bloggers, and digital marketers improve their content quality and search engine rankings."
     },
     {
       question: "What makes this different from other keyword density checkers?",
@@ -144,7 +144,7 @@ export function AboutSection() {
               <p className="text-base text-muted-foreground leading-relaxed">
                 Analyze single keywords and multi-word phrases (1-4 grams), get target keyword optimization scores, and receive
                 actionable recommendations. With <strong>keyword clustering</strong>, <strong>interactive visualizations</strong>, and
-                <strong>PDF/CSV export</strong>, create SEO-optimized content that ranks higher on Google.
+                <strong>professional PDF export</strong>, create SEO-optimized content that ranks higher on Google.
               </p>
             </div>
           </div>
