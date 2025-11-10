@@ -143,7 +143,7 @@ export function AboutSection() {
               </p>
               <p className="text-base text-muted-foreground leading-relaxed">
                 Analyze single keywords and multi-word phrases (1-4 grams), get target keyword optimization scores, and receive
-                actionable recommendations. With <strong>keyword clustering</strong>, <strong>interactive visualizations</strong>, and
+                actionable recommendations. With <strong>keyword clustering</strong>, <strong>interactive visualizations</strong>, and{' '}
                 <strong>professional PDF export</strong>, create SEO-optimized content that ranks higher on Google.
               </p>
             </div>
