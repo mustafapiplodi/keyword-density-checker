@@ -50,7 +50,7 @@ You can manually trigger the workflow:
 2. Create free account
 3. Add monitor:
    - Type: HTTP(s)
-   - URL: `https://keyword-density-checker-d484944hg0os7381o220.onrender.com/api/health`
+   - URL: `https://keyword-density-checker-z0sk.onrender.com/api/health`
    - Interval: 5 minutes
 4. Done! Service will stay awake
 
@@ -65,7 +65,7 @@ You can manually trigger the workflow:
 1. Go to https://cron-job.org
 2. Create account
 3. Add new cron job:
-   - URL: `https://keyword-density-checker-d484944hg0os7381o220.onrender.com/api/health`
+   - URL: `https://keyword-density-checker-z0sk.onrender.com/api/health`
    - Interval: Every 10 minutes
 4. Enable job
 
@@ -101,7 +101,7 @@ Upgrade at: https://dashboard.render.com
 
 Test the health endpoint:
 ```bash
-curl https://keyword-density-checker-d484944hg0os7381o220.onrender.com/api/health
+curl https://keyword-density-checker-z0sk.onrender.com/api/health
 ```
 
 Expected response:

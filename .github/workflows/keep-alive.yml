@@ -13,7 +13,7 @@ jobs:
       - name: Ping Render Backend
         run: |
           echo "Pinging backend to keep it alive..."
-          response=$(curl -s -o /dev/null -w "%{http_code}" https://keyword-density-checker-d484944hg0os7381o220.onrender.com/api/health)
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://keyword-density-checker-z0sk.onrender.com/api/health)
           echo "Response code: $response"
           if [ $response -eq 200 ]; then
             echo "✅ Backend is healthy"
