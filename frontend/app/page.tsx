@@ -12,8 +12,6 @@ import { KeywordWordCloud } from "@/components/KeywordWordCloud"
 import { KeywordHeatmap } from "@/components/KeywordHeatmap"
 import { TargetKeywordAnalysis } from "@/components/TargetKeywordAnalysis"
 import { KeywordClusters } from "@/components/KeywordClusters"
-import { CompetitorComparison } from "@/components/CompetitorComparison"
-import { BatchCompetitorAnalysis } from "@/components/BatchCompetitorAnalysis"
 import { AnalysisSkeleton, ChartSkeleton, ContentQualitySkeleton } from "@/components/LoadingSkeletons"
 import { AboutSection } from "@/components/AboutSection"
 import { AnalysisProgress } from "@/components/AnalysisProgress"
@@ -29,27 +27,17 @@ import {
 } from "@/components/ui/breadcrumb"
 import {
   analyzeContent,
-  compareCompetitor,
   exportCSV,
-  exportPDF,
-  batchCompetitorAnalysis
+  exportPDF
 } from "@/lib/api"
 import { generateCacheKey, getCachedResult, setCachedResult } from "@/lib/cache"
-import type { AnalyzeRequest, CompareRequest } from "@/lib/api"
-import type { AnalysisResults, ComparisonResults, BatchCompetitorResults } from "@/types"
+import type { AnalyzeRequest } from "@/lib/api"
+import type { AnalysisResults } from "@/types"
 
 export default function Home() {
   const [results, setResults] = useState<AnalysisResults | null>(null)
-  const [comparisonResults, setComparisonResults] = useState<ComparisonResults | null>(null)
-  const [batchResults, setBatchResults] = useState<BatchCompetitorResults | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [isComparing, setIsComparing] = useState(false)
-  const [isBatchAnalyzing, setIsBatchAnalyzing] = useState(false)
   const [analysisError, setAnalysisError] = useState<string | undefined>()
-  const [comparisonError, setComparisonError] = useState<string | undefined>()
-  const [batchError, setBatchError] = useState<string | undefined>()
-  const [lastAnalyzedUrl, setLastAnalyzedUrl] = useState<string | undefined>()
-  const [lastAnalyzedText, setLastAnalyzedText] = useState<string | undefined>()
 
   const handleAnalyze = async (data: AnalyzeRequest) => {
     setIsAnalyzing(true)
@@ -72,8 +60,6 @@ export default function Home() {
       if (cachedResult) {
         console.log('Using cached analysis result')
         setResults(cachedResult)
-        setLastAnalyzedUrl(data.url)
-        setLastAnalyzedText(data.text)
         setIsAnalyzing(false)
         return
       }
@@ -81,8 +67,6 @@ export default function Home() {
       // If not in cache, perform analysis
       const result = await analyzeContent(data)
       setResults(result)
-      setLastAnalyzedUrl(data.url)
-      setLastAnalyzedText(data.text)
 
       // Cache the result
       setCachedResult(cacheKey, result)
@@ -90,21 +74,6 @@ export default function Home() {
       setAnalysisError(err instanceof Error ? err.message : "Analysis failed")
     } finally {
       setIsAnalyzing(false)
-    }
-  }
-
-  const handleCompare = async (data: CompareRequest) => {
-    setIsComparing(true)
-    setComparisonError(undefined)
-    setComparisonResults(null)
-
-    try {
-      const result = await compareCompetitor(data)
-      setComparisonResults(result)
-    } catch (err) {
-      setComparisonError(err instanceof Error ? err.message : "Comparison failed")
-    } finally {
-      setIsComparing(false)
     }
   }
 
@@ -144,30 +113,6 @@ export default function Home() {
     }
   }
 
-  const handleBatchAnalysis = async (competitorUrls: string[]) => {
-    if (!lastAnalyzedText && !lastAnalyzedUrl) {
-      setBatchError("Please analyze your content first before comparing with competitors")
-      return
-    }
-
-    setIsBatchAnalyzing(true)
-    setBatchError(undefined)
-    setBatchResults(null)
-
-    try {
-      const result = await batchCompetitorAnalysis({
-        your_content: lastAnalyzedUrl || lastAnalyzedText || '',
-        competitor_urls: competitorUrls,
-        source_type: lastAnalyzedUrl ? 'url' : 'text'
-      })
-      setBatchResults(result)
-    } catch (err) {
-      setBatchError(err instanceof Error ? err.message : "Batch analysis failed")
-    } finally {
-      setIsBatchAnalyzing(false)
-    }
-  }
-
   return (
     <div className="space-y-8">
       {/* Screen reader announcements for status updates */}
@@ -199,7 +144,7 @@ export default function Home() {
           SEO Content Analysis
         </h2>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-          Analyze keyword density, meta tags, and compare with competitors to optimize your content for search engines
+          Analyze keyword density, readability scores, and meta tags to optimize your content for search engines
         </p>
       </div>
 
@@ -216,14 +161,12 @@ export default function Home() {
       {!isAnalyzing && results && (
         <div className="space-y-6" role="region" aria-label="Analysis results">
           <Tabs defaultValue="results" className="w-full">
-            <TabsList className="grid w-full grid-cols-7" role="tablist" aria-label="Analysis sections">
+            <TabsList className="grid w-full grid-cols-5" role="tablist" aria-label="Analysis sections">
               <TabsTrigger value="results">Results</TabsTrigger>
               <TabsTrigger value="visualization">Charts</TabsTrigger>
               <TabsTrigger value="seo">SEO</TabsTrigger>
               <TabsTrigger value="quality">Content Quality</TabsTrigger>
               <TabsTrigger value="meta">Meta Tags</TabsTrigger>
-              <TabsTrigger value="competitor">1 Competitor</TabsTrigger>
-              <TabsTrigger value="batch">Batch Analysis</TabsTrigger>
             </TabsList>
 
             <TabsContent value="results" className="space-y-6">
@@ -356,27 +299,6 @@ export default function Home() {
               )}
             </TabsContent>
 
-            <TabsContent value="competitor">
-              <CompetitorComparison
-                yourUrl={lastAnalyzedUrl}
-                yourText={lastAnalyzedText}
-                onCompare={handleCompare}
-                isLoading={isComparing}
-                error={comparisonError}
-                results={comparisonResults || undefined}
-              />
-            </TabsContent>
-
-            <TabsContent value="batch">
-              <BatchCompetitorAnalysis
-                yourUrl={lastAnalyzedUrl}
-                yourText={lastAnalyzedText}
-                onAnalyze={handleBatchAnalysis}
-                isLoading={isBatchAnalyzing}
-                error={batchError}
-                results={batchResults || undefined}
-              />
-            </TabsContent>
           </Tabs>
         </div>
       )}

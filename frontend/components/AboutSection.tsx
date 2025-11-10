@@ -38,16 +38,6 @@ export function AboutSection() {
       description: "Get a comprehensive SEO score (0-100) for your target keyword. Our algorithm analyzes keyword placement in titles, headings, meta descriptions, and content to provide actionable optimization recommendations."
     },
     {
-      icon: <TrendingUp className="h-6 w-6" />,
-      title: "Competitor Content Analysis",
-      description: "Compare your content with competitors to identify keyword gaps and opportunities. Discover which keywords your competitors are ranking for and optimize your content strategy accordingly."
-    },
-    {
-      icon: <BarChart3 className="h-6 w-6" />,
-      title: "Batch Competitor Analysis",
-      description: "Analyze multiple competitor URLs simultaneously. Get TF-IDF scores, keyword gaps, and content insights from up to 10 competitors at once to gain a competitive edge."
-    },
-    {
       icon: <BookOpen className="h-6 w-6" />,
       title: "Readability Score Analysis",
       description: "Measure content readability with Flesch Reading Ease, Flesch-Kincaid Grade Level, Gunning Fog Index, and SMOG Index. Ensure your content is accessible to your target audience."
@@ -103,14 +93,6 @@ export function AboutSection() {
       answer: "The ideal keyword density for SEO is between 0.5% and 2.5%. Content with keyword density below 0.5% may not rank well because search engines can't determine the main topic. Keyword density above 3.5% is considered keyword stuffing and can result in search engine penalties. Our tool provides color-coded status indicators: Optimal (0.5-2.5%), Caution (2.5-3.5%), Warning (3.5-5%), and Critical (>5%) to help you maintain the perfect balance for modern SEO best practices."
     },
     {
-      question: "Can I analyze competitor content with this keyword density tool?",
-      answer: "Yes! Our keyword density checker includes powerful competitor analysis features. You can compare your content with a single competitor to identify keyword gaps, or use the batch analysis feature to analyze up to 10 competitor URLs simultaneously. The tool shows which keywords competitors are using, their keyword density, TF-IDF scores, and provides recommendations on which keywords to add to your content to improve competitiveness and search rankings."
-    },
-    {
-      question: "What are TF-IDF scores and how do they help with SEO?",
-      answer: "TF-IDF (Term Frequency-Inverse Document Frequency) is an advanced metric that identifies unique and valuable keywords in your content compared to competitors. Unlike simple keyword density, TF-IDF scores help you find keywords that differentiate your content. High TF-IDF scores indicate unique terms that can help you rank for specific search queries. Our batch competitor analysis calculates TF-IDF scores automatically to show which keywords give you a competitive advantage."
-    },
-    {
       question: "How does the readability score affect SEO?",
       answer: "Readability scores (Flesch Reading Ease, Flesch-Kincaid Grade Level, Gunning Fog Index, and SMOG Index) measure how easy your content is to read and understand. Search engines like Google favor content that provides good user experience, and readability is a key factor. Content that's too difficult to read leads to high bounce rates and low engagement, negatively impacting SEO. Our readability analyzer helps you create content that's both search-engine friendly and user-friendly, improving dwell time and search rankings."
     },
@@ -155,14 +137,14 @@ export function AboutSection() {
               </h2>
               <p className="text-base text-muted-foreground leading-relaxed">
                 A comprehensive, free SEO tool designed to help content creators, digital marketers, and SEO professionals
-                optimize their content for search engines. Get <strong>keyword frequency analysis</strong>, <strong>competitor
-                content comparison</strong>, <strong>readability scoring</strong>, and <strong>TF-IDF analysis</strong> all
+                optimize their content for search engines. Get <strong>keyword frequency analysis</strong>, <strong>readability
+                scoring</strong>, <strong>meta tag analysis</strong>, and <strong>content structure evaluation</strong> all
                 in one powerful platform.
               </p>
               <p className="text-base text-muted-foreground leading-relaxed">
-                Analyze single keywords and multi-word phrases, compare with up to 10 competitors, and get actionable
-                recommendations. With <strong>keyword clustering</strong>, <strong>meta tag analysis</strong>, and
-                <strong>content structure evaluation</strong>, create SEO-optimized content that ranks higher on Google.
+                Analyze single keywords and multi-word phrases (1-4 grams), get target keyword optimization scores, and receive
+                actionable recommendations. With <strong>keyword clustering</strong>, <strong>interactive visualizations</strong>, and
+                <strong>PDF/CSV export</strong>, create SEO-optimized content that ranks higher on Google.
               </p>
             </div>
           </div>
@@ -252,7 +234,7 @@ export function AboutSection() {
             <p className="text-base text-muted-foreground leading-relaxed">
               Join SEO professionals, content marketers, and bloggers worldwide who use our <strong>keyword density
               analyzer</strong> to create search-engine-optimized content that ranks higher on Google. Get keyword
-              frequency analysis, competitor insights, readability scores, and actionable SEO recommendations—all
+              frequency analysis, readability scores, content structure analysis, and actionable SEO recommendations—all
               completely free.
             </p>
           </div>
