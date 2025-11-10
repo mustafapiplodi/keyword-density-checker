@@ -170,10 +170,10 @@ export function AboutSection() {
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl text-primary group-hover:scale-110 transition-transform">
+                  <div className="shrink-0 p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl text-primary group-hover:scale-110 transition-transform flex items-center justify-center">
                     {feature.icon}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 flex items-center">
                     <CardTitle className="text-base leading-tight group-hover:text-primary transition-colors">
                       {feature.title}
                     </CardTitle>
