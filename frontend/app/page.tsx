@@ -27,7 +27,6 @@ import {
 } from "@/components/ui/breadcrumb"
 import {
   analyzeContent,
-  exportCSV,
   exportPDF
 } from "@/lib/api"
 import { generateCacheKey, getCachedResult, setCachedResult } from "@/lib/cache"
@@ -74,24 +73,6 @@ export default function Home() {
       setAnalysisError(err instanceof Error ? err.message : "Analysis failed")
     } finally {
       setIsAnalyzing(false)
-    }
-  }
-
-  const handleExport = async () => {
-    if (!results) return
-
-    try {
-      const blob = await exportCSV(results)
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      a.download = `keyword-analysis-${Date.now()}.csv`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
-    } catch (err) {
-      console.error("Export failed:", err)
     }
   }
 
@@ -170,7 +151,7 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="results" className="space-y-6">
-              <ResultsDisplay results={results} onExport={handleExport} onExportPDF={handleExportPDF} />
+              <ResultsDisplay results={results} onExportPDF={handleExportPDF} />
 
               {results.prominence_scores && results.prominence_scores.length > 0 && (
                 <ProminenceScoresDisplay scores={results.prominence_scores} />

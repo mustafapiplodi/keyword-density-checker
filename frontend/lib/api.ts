@@ -85,22 +85,6 @@ export async function compareCompetitor(
   return response.json()
 }
 
-export async function exportCSV(data: AnalysisResults): Promise<Blob> {
-  const response = await fetch(`${API_BASE}/export-csv`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-
-  if (!response.ok) {
-    throw new Error("Export failed")
-  }
-
-  return response.blob()
-}
-
 export async function exportPDF(data: AnalysisResults): Promise<Blob> {
   const response = await fetch(`${API_BASE}/export-pdf`, {
     method: "POST",
