@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AnalysisForm } from "@/components/AnalysisForm"
 import { ResultsDisplay } from "@/components/ResultsDisplay"
 import { MetaAnalysisDisplay } from "@/components/MetaAnalysisDisplay"
@@ -18,6 +18,14 @@ import { AnalysisSkeleton, ChartSkeleton, ContentQualitySkeleton } from "@/compo
 import { AboutSection } from "@/components/AboutSection"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import {
   analyzeContent,
   compareCompetitor,
@@ -41,6 +49,17 @@ export default function Home() {
   const [batchError, setBatchError] = useState<string | undefined>()
   const [lastAnalyzedUrl, setLastAnalyzedUrl] = useState<string | undefined>()
   const [lastAnalyzedText, setLastAnalyzedText] = useState<string | undefined>()
+  const [isFirstVisit, setIsFirstVisit] = useState(true)
+
+  useEffect(() => {
+    // Check if user has visited before
+    const hasVisited = localStorage.getItem('hasVisitedBefore')
+    if (hasVisited) {
+      setIsFirstVisit(false)
+    } else {
+      localStorage.setItem('hasVisitedBefore', 'true')
+    }
+  }, [])
 
   const handleAnalyze = async (data: AnalyzeRequest) => {
     setIsAnalyzing(true)
@@ -168,12 +187,29 @@ export default function Home() {
         {analysisError && `Error: ${analysisError}`}
       </div>
 
-      <div className="space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">
+      {/* Breadcrumbs */}
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="https://www.scalinghigh.com">Home</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="https://www.scalinghigh.com/tools">Tools</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Keyword Density Checker</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="space-y-3">
+        <h2 className="text-4xl font-bold tracking-tight">
           SEO Content Analysis
         </h2>
-        <p className="text-muted-foreground">
-          Analyze keyword density, meta tags, and compare with competitors
+        <p className="text-lg text-muted-foreground">
+          Analyze keyword density, meta tags, and compare with competitors to optimize your content for search engines
         </p>
       </div>
 
@@ -357,8 +393,10 @@ export default function Home() {
         </div>
       )}
 
-      {/* About Section - Always visible */}
-      <AboutSection />
+      {/* About Section - Only visible on first visit and when no results */}
+      {isFirstVisit && !results && (
+        <AboutSection />
+      )}
     </div>
   )
 }

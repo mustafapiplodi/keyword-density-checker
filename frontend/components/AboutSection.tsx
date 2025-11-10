@@ -141,51 +141,58 @@ export function AboutSection() {
   ]
 
   return (
-    <section className="space-y-12 py-12" id="about">
+    <section className="space-y-16 py-8" id="about">
       {/* About Section */}
-      <div className="space-y-4">
-        <h2 className="text-3xl font-bold tracking-tight">
-          About Our Free SEO Keyword Density Checker & Content Analyzer
-        </h2>
-        <div className="prose prose-gray dark:prose-invert max-w-none">
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Our <strong>keyword density checker</strong> is a comprehensive, free SEO tool designed to help content creators,
-            digital marketers, and SEO professionals optimize their content for search engines. Unlike basic keyword density
-            calculators, our advanced analyzer provides <strong>keyword frequency analysis</strong>, <strong>competitor content comparison</strong>,
-            <strong>readability scoring</strong>, and <strong>TF-IDF analysis</strong> all in one powerful platform.
-          </p>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Whether you're writing blog posts, creating landing pages, or optimizing product descriptions, our <strong>SEO keyword
-            density tool</strong> helps you find the perfect keyword balance. Analyze single keywords and multi-word phrases (2-grams,
-            3-grams, 4-grams), compare your content with up to 10 competitors, and get actionable recommendations to improve
-            your search engine rankings. With features like <strong>keyword clustering</strong>, <strong>meta tag analysis</strong>, and
-            <strong>content structure evaluation</strong>, you'll have everything you need to create SEO-optimized content that ranks
-            higher on Google and drives organic traffic.
-          </p>
-        </div>
-      </div>
+      <Card className="border-none shadow-none bg-gradient-to-br from-primary/5 to-primary/10">
+        <CardContent className="pt-8 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-primary/20 rounded-lg">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <div className="flex-1 space-y-3">
+              <h2 className="text-2xl font-bold tracking-tight">
+                About Our Free SEO Keyword Density Checker
+              </h2>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                A comprehensive, free SEO tool designed to help content creators, digital marketers, and SEO professionals
+                optimize their content for search engines. Get <strong>keyword frequency analysis</strong>, <strong>competitor
+                content comparison</strong>, <strong>readability scoring</strong>, and <strong>TF-IDF analysis</strong> all
+                in one powerful platform.
+              </p>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                Analyze single keywords and multi-word phrases, compare with up to 10 competitors, and get actionable
+                recommendations. With <strong>keyword clustering</strong>, <strong>meta tag analysis</strong>, and
+                <strong>content structure evaluation</strong>, create SEO-optimized content that ranks higher on Google.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Features Section */}
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight mb-2">
+      <div className="space-y-8">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <h2 className="text-3xl font-bold tracking-tight">
             Powerful Features for SEO Content Optimization
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             All the tools you need to create perfectly optimized content that ranks on search engines
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
-            <Card key={index} className="border-2 hover:border-primary transition-colors">
-              <CardHeader>
-                <div className="flex items-start gap-4">
-                  <div className="p-2 bg-primary/10 rounded-lg text-primary">
+            <Card
+              key={index}
+              className="group hover:shadow-lg transition-all duration-300 hover:scale-[1.02] border-muted/50 hover:border-primary/50"
+            >
+              <CardHeader className="pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl text-primary group-hover:scale-110 transition-transform">
                     {feature.icon}
                   </div>
                   <div className="flex-1">
-                    <CardTitle className="text-lg leading-tight">
+                    <CardTitle className="text-base leading-tight group-hover:text-primary transition-colors">
                       {feature.title}
                     </CardTitle>
                   </div>
@@ -202,25 +209,25 @@ export function AboutSection() {
       </div>
 
       {/* FAQ Section */}
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight mb-2">
-            Frequently Asked Questions About Keyword Density & SEO
+      <div className="space-y-8">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <h2 className="text-3xl font-bold tracking-tight">
+            Frequently Asked Questions
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-lg text-muted-foreground">
             Everything you need to know about keyword density analysis and SEO content optimization
           </p>
         </div>
 
-        <Card>
+        <Card className="border-muted/50 shadow-sm">
           <CardContent className="pt-6">
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, index) => (
-                <AccordionItem key={index} value={`item-${index}`}>
-                  <AccordionTrigger className="text-left">
-                    <span className="font-semibold">{faq.question}</span>
+                <AccordionItem key={index} value={`item-${index}`} className="border-b border-muted/30 last:border-0">
+                  <AccordionTrigger className="text-left hover:text-primary transition-colors py-4">
+                    <span className="font-semibold text-base pr-4">{faq.question}</span>
                   </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                  <AccordionContent className="text-muted-foreground leading-relaxed text-sm pb-4">
                     {faq.answer}
                   </AccordionContent>
                 </AccordionItem>
@@ -230,19 +237,27 @@ export function AboutSection() {
         </Card>
       </div>
 
-      {/* SEO-Optimized Footer Content */}
-      <div className="border-t pt-8 space-y-4">
-        <h3 className="text-xl font-semibold">
-          Start Optimizing Your Content with Our Free Keyword Density Checker
-        </h3>
-        <p className="text-muted-foreground leading-relaxed">
-          Our <strong>keyword density analyzer</strong> is trusted by SEO professionals, content marketers, and bloggers
-          worldwide to create search-engine-optimized content that ranks higher on Google. The tool analyzes keyword
-          frequency, provides competitor insights, calculates readability scores, and offers actionable SEO recommendations—all
-          completely free. Start analyzing your content today and discover how proper keyword optimization can improve your
-          search engine rankings, increase organic traffic, and help you outrank competitors in search results.
-        </p>
-      </div>
+      {/* CTA Section */}
+      <Card className="border-none shadow-none bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10">
+        <CardContent className="pt-8 pb-8">
+          <div className="text-center max-w-3xl mx-auto space-y-4">
+            <div className="flex justify-center">
+              <div className="p-3 bg-primary/20 rounded-2xl">
+                <ArrowRight className="h-8 w-8 text-primary" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold">
+              Start Optimizing Your Content Today
+            </h3>
+            <p className="text-base text-muted-foreground leading-relaxed">
+              Join SEO professionals, content marketers, and bloggers worldwide who use our <strong>keyword density
+              analyzer</strong> to create search-engine-optimized content that ranks higher on Google. Get keyword
+              frequency analysis, competitor insights, readability scores, and actionable SEO recommendations—all
+              completely free.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </section>
   )
 }

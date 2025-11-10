@@ -112,12 +112,19 @@ export function OnboardingTour() {
   }, [])
 
   const handleJoyrideCallback = (data: CallBackProps) => {
-    const { status, type } = data
+    const { status, type, index, action } = data
     const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED]
 
     if (finishedStatuses.includes(status)) {
       setRun(false)
       setStepIndex(0)
+    }
+
+    // Handle step progression
+    if (type === 'step:after' && action === 'next') {
+      setStepIndex(index + 1)
+    } else if (type === 'step:after' && action === 'prev') {
+      setStepIndex(index - 1)
     }
   }
 

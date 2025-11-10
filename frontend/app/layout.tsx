@@ -64,7 +64,7 @@ export default function RootLayout({
         >
           <SkipLink />
           <div className="min-h-screen bg-background">
-            <header className="border-b" role="banner">
+            <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" role="banner">
               <div className="container mx-auto px-4 py-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -76,22 +76,6 @@ export default function RootLayout({
                     </p>
                   </div>
                   <nav className="flex items-center gap-4" aria-label="Main navigation">
-                    <a
-                      href="https://github.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="Visit GitHub repository"
-                    >
-                      GitHub
-                    </a>
-                    <a
-                      href="/docs"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      aria-label="View documentation"
-                    >
-                      Documentation
-                    </a>
                     <OnboardingTour />
                     <ThemeToggle />
                   </nav>
@@ -104,7 +88,15 @@ export default function RootLayout({
             <footer className="border-t mt-12" role="contentinfo">
               <div className="container mx-auto px-4 py-6">
                 <p className="text-center text-sm text-muted-foreground">
-                  Built with Next.js, Shadcn UI, and Flask
+                  Powered by{" "}
+                  <a
+                    href="https://www.scalinghigh.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium hover:text-foreground transition-colors underline"
+                  >
+                    Scaling High Technologies
+                  </a>
                 </p>
               </div>
             </footer>
