@@ -16,6 +16,7 @@ import { CompetitorComparison } from "@/components/CompetitorComparison"
 import { BatchCompetitorAnalysis } from "@/components/BatchCompetitorAnalysis"
 import { AnalysisSkeleton, ChartSkeleton, ContentQualitySkeleton } from "@/components/LoadingSkeletons"
 import { AboutSection } from "@/components/AboutSection"
+import { AnalysisProgress } from "@/components/AnalysisProgress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -209,9 +210,7 @@ export default function Home() {
       />
 
       {isAnalyzing && (
-        <div className="space-y-6" role="alert" aria-busy="true">
-          <AnalysisSkeleton />
-        </div>
+        <AnalysisProgress isAnalyzing={isAnalyzing} />
       )}
 
       {!isAnalyzing && results && (
