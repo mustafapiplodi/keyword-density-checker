@@ -204,11 +204,11 @@ export default function Home() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="space-y-3">
-        <h2 className="text-4xl font-bold tracking-tight">
+      <div className="text-center space-y-4 max-w-4xl mx-auto py-8">
+        <h2 className="text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
           SEO Content Analysis
         </h2>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
           Analyze keyword density, meta tags, and compare with competitors to optimize your content for search engines
         </p>
       </div>
