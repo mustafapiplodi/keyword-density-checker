@@ -1,0 +1,25 @@
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    # Runs every 10 minutes (Render free tier sleeps after 15 minutes of inactivity)
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          echo "Pinging backend to keep it alive..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://keyword-density-checker-d484944hg0os7381o220.onrender.com/api/health)
+          echo "Response code: $response"
+          if [ $response -eq 200 ]; then
+            echo "✅ Backend is healthy"
+          else
+            echo "⚠️ Backend returned status code: $response"
+          fi
+
+      - name: Log timestamp
+        run: echo "Pinged at $(date)"

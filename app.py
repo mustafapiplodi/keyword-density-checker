@@ -1436,6 +1436,17 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint to keep service alive and monitor status."""
+    return jsonify({
+        "status": "healthy",
+        "message": "Keyword Density Checker API is running",
+        "timestamp": datetime.now().isoformat(),
+        "spacy_available": SPACY_AVAILABLE
+    }), 200
+
+
 @app.route('/api/analyze', methods=['POST'])
 def analyze_endpoint():
     """
