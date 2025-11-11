@@ -34,7 +34,8 @@ CORS(app, resources={
             "https://frontend-ten-nu-65.vercel.app",
             "https://keyword-density-checker.vercel.app",
             "https://www.scalinghigh.com",
-            "https://scalinghigh.com"
+            "https://scalinghigh.com",
+            "https://keyword.scalinghigh.com"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type", "Accept"],

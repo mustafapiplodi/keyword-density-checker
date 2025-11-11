@@ -111,10 +111,6 @@ export default function Home() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="https://www.scalinghigh.com/tools">Tools</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
             <BreadcrumbPage>Keyword Density Checker</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>

@@ -35,13 +35,13 @@ export const metadata: Metadata = {
   creator: "Scaling High Technologies",
   publisher: "Scaling High Technologies",
   robots: "index, follow",
-  metadataBase: new URL('https://www.scalinghigh.com'),
+  metadataBase: new URL('https://keyword.scalinghigh.com'),
   openGraph: {
     title: "Free Keyword Density Checker | SEO Content Analyzer",
     description: "Analyze keyword density, compare with competitors, get readability scores, and optimize your content for search engines. Free SEO tool with TF-IDF analysis.",
     type: "website",
     locale: "en_US",
-    url: "https://www.scalinghigh.com/tools/keyword-density-checker",
+    url: "https://keyword.scalinghigh.com",
     siteName: "Scaling High Technologies",
   },
   twitter: {
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     site: "@scalinghigh",
   },
   alternates: {
-    canonical: "https://www.scalinghigh.com/tools/keyword-density-checker",
+    canonical: "https://keyword.scalinghigh.com",
   },
   verification: {
     google: "google-site-verification-code-here",
@@ -68,7 +68,7 @@ export default function RootLayout({
     '@type': 'WebApplication',
     name: 'Keyword Density Checker',
     description: 'Free keyword density checker and SEO analyzer tool for content optimization',
-    url: 'https://www.scalinghigh.com/tools/keyword-density-checker',
+    url: 'https://keyword.scalinghigh.com',
     applicationCategory: 'SEO Tool',
     operatingSystem: 'Any',
     offers: {
@@ -134,17 +134,30 @@ export default function RootLayout({
           </main>
             <footer className="border-t mt-12" role="contentinfo">
               <div className="container mx-auto px-4 py-6">
-                <p className="text-center text-sm text-muted-foreground">
-                  Powered by{" "}
-                  <a
-                    href="https://www.scalinghigh.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium hover:text-foreground transition-colors underline"
-                  >
-                    Scaling High Technologies
-                  </a>
-                </p>
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Powered by{" "}
+                    <a
+                      href="https://www.scalinghigh.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium hover:text-foreground transition-colors underline"
+                    >
+                      Scaling High Technologies
+                    </a>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Need SEO, Web Development, or Graphic Design?{" "}
+                    <a
+                      href="https://www.scalinghigh.com/contact"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium hover:text-foreground transition-colors underline"
+                    >
+                      Get in touch
+                    </a>
+                  </p>
+                </div>
               </div>
             </footer>
           </div>

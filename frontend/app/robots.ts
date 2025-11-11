@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/', '/_next/'],
     },
-    sitemap: 'https://www.scalinghigh.com/tools/keyword-density-checker/sitemap.xml',
+    sitemap: 'https://keyword.scalinghigh.com/sitemap.xml',
   }
 }
